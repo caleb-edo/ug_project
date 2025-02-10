@@ -5,12 +5,17 @@ import jakarta.validation.constraints.*;
 import java.util.Date;
 
 @Entity
-@PrimaryKeyJoinColumn(name = "user_id") // Link to the User table
+@Table(name = "patient")
+@PrimaryKeyJoinColumn(name = "user_id")
 public class Patient extends User {
 
     @NotBlank(message = "Full name is required")
     @Size(max = 100, message = "Full name must be less than 100 characters")
     private String fullName;
+
+    @ManyToOne
+    @JoinColumn(name = "doctor_id") // This column links a patient to a doctor
+    private Doctor doctor;
 
     @NotNull(message = "Date of birth is required")
     @Past(message = "Date of birth must be in the past")
@@ -100,5 +105,13 @@ public class Patient extends User {
 
     public void setCurrentMedications(String currentMedications) {
         this.currentMedications = currentMedications;
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
     }
 }

@@ -19,18 +19,17 @@ public class PatientController {
 
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        String username = userDetails.getUsername();
-        Patient patient = patientService.getPatientByUsername(username);
+        try {
+            String username = userDetails.getUsername();
+            Patient patient = patientService.getPatientByUsername(username);
 
-        if (patient == null) {
-            return "redirect:/login"; // Redirect to login if patient not found
+            model.addAttribute("patient", patient);
+            model.addAttribute("healthMetrics", patientService.getHealthMetrics(patient.getId()));
+            model.addAttribute("trendAnalysis", patientService.getTrendAnalysis(patient.getId()));
+
+            return "patient-dashboard";
+        } catch (Exception e) {
+            return "redirect:/login?error";
         }
-
-        // Add patient data to the model
-        model.addAttribute("patient", patient);
-        model.addAttribute("healthMetrics", patientService.getHealthMetrics(patient.getId()));
-        model.addAttribute("trendAnalysis", patientService.getTrendAnalysis(patient.getId()));
-
-        return "patient/dashboard";
     }
 }

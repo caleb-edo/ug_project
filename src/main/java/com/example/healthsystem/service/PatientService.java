@@ -16,11 +16,10 @@ public class PatientService {
 
     public Patient getPatientByUsername(String username) {
         return patientRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
+                .orElseThrow(() -> new RuntimeException("Patient not found with username: " + username));
     }
 
     public Map<String, String> getHealthMetrics(Long patientId) {
-        // Simulate health metrics
         Map<String, String> metrics = new HashMap<>();
         metrics.put("Blood Pressure", "120/80 mmHg");
         metrics.put("Heart Rate", "72 bpm");
@@ -29,7 +28,6 @@ public class PatientService {
     }
 
     public Map<String, String> getTrendAnalysis(Long patientId) {
-        // Simulate trend analysis
         Map<String, String> trends = new HashMap<>();
         trends.put("Blood Pressure Trend", "Stable");
         trends.put("Heart Rate Trend", "Slightly Increasing");

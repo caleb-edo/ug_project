@@ -42,8 +42,11 @@
 <div class="container">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <h1>Welcome, <span th:text="${patient.name}">Patient Name</span></h1>
+        <h1>Welcome, <span th:text="${patient.fullName}">Patient Name</span></h1>
         <p>Your personalized health dashboard</p>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
     </div>
 
     <!-- Chatbot -->
