@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(315deg, #198754, #ffffff);
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+        }
+        .dashboard-header {
+            background-color: #198754;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .metric-card h3 {
+            color: #198754;
+        }
+        .patient-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .patient-card {
+            border-left: 4px solid #198754;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        .patient-card:hover {
+            transform: translateX(5px);
+        }
+        .message-section {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        /* Added hover-in animation for the dashboard container */
+        .container {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Dr. <span th:text="${doctor.fullName}">Doctor Name</span></h1>
+                <p th:text="${doctor.specialization}">Specialization</p>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="metric-card">
+                <h3>Your Patients</h3>
+                <div class="patient-list">
+                    <div th:each="patient : ${patients}" class="card patient-card p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong th:text="${patient.fullName}">Patient Name</strong>
+                                <br>
+                                <small class="text-muted" th:text="${patient.contactNumber}">Contact</small>
+                            </div>
+                            <a th:href="@{/doctor/patient/{id}(id=${patient.id})}" class="btn btn-outline-success btn-sm">View Details</a>
+                        </div>
+                        <div class="mt-2">
+                            <small>Current Medications:</small>
+                            <p class="mb-0" th:text="${patient.currentMedications ?: 'None'}">Medications</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assign Patient Section -->
+            <div class="metric-card">
+                <h3>Assign a Patient</h3>
+                <form action="/doctor/assign-patient" method="post">
+                    <div class="input-group mb-3">
+                        <select name="patientId" class="form-select" required>
+                            <option value="" disabled selected>Select a patient</option>
+                            <option th:each="patient : ${unassignedPatients}"
+                                    th:value="${patient.id}"
+                                    th:text="${patient.fullName}">Patient Name</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Assign</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="metric-card">
+                        <h3>Patient Statistics</h3>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card text-center p-3">
+                                    <h4 th:text="${patients.size()}">0</h4>
+                                    <p>Total Patients</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center p-3">
+                                    <h4 th:text="${patientStats.requireAttention}">0</h4>
+                                    <p>Need Attention</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-center p-3">
+                                    <h4 th:text="${patientStats.pendingAppointments}">0</h4>
+                                    <p>Pending Appointments</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Replace the Messages Section with the New Button -->
+                <div class="col-md-12">
+                    <div class="metric-card">
+                        <h3>Messages</h3>
+                        <p>Communicate securely with your patients.</p>
+                        <a href="/messages" class="btn btn-primary">Go to Messages</a>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="metric-card">
+                        <h3>Recent Updates</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Update Type</th>
+                                    <th>Details</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="update : ${recentUpdates}">
+                                    <td th:text="${update.patientName}">Patient Name</td>
+                                    <td th:text="${update.type}">Update Type</td>
+                                    <td th:text="${update.details}">Details</td>
+                                    <td>
+                                        <a th:href="@{/doctor/patient/{id}(id=${update.patientId})}" class="btn btn-outline-success btn-sm">View</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

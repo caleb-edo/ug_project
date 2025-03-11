@@ -58,4 +58,13 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
+
+    public String getFullName() {
+        if (this instanceof Doctor) {
+            return ((Doctor) this).getFullName();
+        } else if (this instanceof Patient) {
+            return ((Patient) this).getFullName();
+        }
+        return username; // fallback to username if neither Doctor nor Patient
+    }
 }

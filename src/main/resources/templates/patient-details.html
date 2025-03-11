@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa; padding: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .patient-header {
+            background-color: #198754;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .detail-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .detail-card h3 { color: #198754; }
+
+        .container {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Patient Header -->
+    <div class="patient-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 th:text="${patient.fullName}">Patient Name</h1>
+                <p class="mb-0">
+                    <span th:text="${patient.gender}">Gender</span> |
+                    DOB: <span th:text="${#dates.format(patient.dateOfBirth, 'MM/dd/yyyy')}">DOB</span>
+                </p>
+            </div>
+            <div>
+                <a href="/doctor/dashboard" class="btn btn-light">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-md-4">
+            <div class="detail-card">
+                <h3>Personal Information</h3>
+                <div class="mb-3">
+                    <strong>Contact:</strong>
+                    <p th:text="${patient.contactNumber}">Phone</p>
+                </div>
+                <div class="mb-3">
+                    <strong>Address:</strong>
+                    <p th:text="${patient.address}">Address</p>
+                </div>
+                <div>
+                    <strong>Primary Doctor:</strong>
+                    <p th:text="${doctor.fullName + ' - ' + doctor.specialization}">Doctor Info</p>
+                </div>
+            </div>
+
+            <!-- Medical History -->
+            <div class="detail-card">
+                <h3>Medical History</h3>
+                <p th:text="${patient.medicalHistory ?: 'No medical history recorded'}">Medical History</p>
+            </div>
+        </div>
+
+        <!-- Health Metrics -->
+        <div class="col-md-8">
+            <div class="detail-card">
+                <h3>Current Health Metrics</h3>
+                <div class="row">
+                    <div th:each="metric : ${healthMetrics}" class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${metric.key}">Metric</h5>
+                                <p class="card-text" th:text="${metric.value}">Value</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="healthMetricsChart" class="mt-4"></canvas>
+            </div>
+
+            <!-- Medications and Allergies -->
+            <div class="detail-card">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>Current Medications</h3>
+                        <p th:text="${patient.currentMedications ?: 'No current medications'}">Medications</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Allergies</h3>
+                        <p th:text="${patient.allergies ?: 'No known allergies'}">Allergies</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Analysis -->
+            <div class="detail-card">
+                <h3>Health Trends</h3>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Trend</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="trend : ${trendAnalysis}">
+                            <td th:text="${trend.key}">Metric</td>
+                            <td th:text="${trend.value}">Trend</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('healthMetricsChart').getContext('2d');
+    const healthMetricsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Blood Pressure',
+                data: [120, 118, 121, 119, 120, 122],
+                borderColor: '#198754',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Blood Pressure Trend (6 Months)'
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
