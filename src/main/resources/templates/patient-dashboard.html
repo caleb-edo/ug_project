@@ -50,6 +50,26 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Prescription Guide Styles */
+        .prescription-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6a11cb;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .prescription-info h5 {
+            color: #6a11cb;
+            margin-bottom: 10px;
+        }
+
+        .prescription-info .badge {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +127,99 @@
         </div>
     </div>
 
+    <!-- Prescription Guide Section (New) -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="metric-card">
+                <h3>Prescription Guide</h3>
+                <p>Select your medication to view important information on how to take it properly.</p>
+
+                <div class="form-group mb-3">
+                    <label for="prescriptionSelect" class="form-label">Select Medication:</label>
+                    <select class="form-select" id="prescriptionSelect" onchange="showPrescriptionInfo()">
+                        <option value="" selected disabled>Choose medication...</option>
+                        <option value="amoxicillin">Amoxicillin</option>
+                        <option value="lisinopril">Lisinopril</option>
+                        <option value="metformin">Metformin</option>
+                        <option value="atorvastatin">Atorvastatin</option>
+                        <option value="levothyroxine">Levothyroxine</option>
+                    </select>
+                </div>
+
+                <!-- Prescription Information Sections -->
+                <div id="amoxicillin-info" class="prescription-info">
+                    <h5>Amoxicillin</h5>
+                    <span class="badge bg-primary">Antibiotic</span>
+                    <span class="badge bg-warning text-dark">Take with food</span>
+
+                    <div class="mt-3">
+                        <p><strong>Dosage:</strong> 500mg three times daily</p>
+                        <p><strong>Purpose:</strong> Treatment of bacterial infections</p>
+                        <p><strong>Instructions:</strong> Take every 8 hours with a full glass of water. Complete the entire prescription even if you feel better.</p>
+                        <p><strong>Side Effects:</strong> Diarrhea, stomach upset, rash</p>
+                        <p><strong>Warning:</strong> Notify your doctor if you develop severe diarrhea, rash, or difficulty breathing.</p>
+                    </div>
+                </div>
+
+                <div id="lisinopril-info" class="prescription-info">
+                    <h5>Lisinopril</h5>
+                    <span class="badge bg-primary">Blood Pressure Medication</span>
+                    <span class="badge bg-info">Take in the morning</span>
+
+                    <div class="mt-3">
+                        <p><strong>Dosage:</strong> 10mg once daily</p>
+                        <p><strong>Purpose:</strong> Treatment of high blood pressure</p>
+                        <p><strong>Instructions:</strong> Take in the morning with or without food. Monitor your blood pressure regularly.</p>
+                        <p><strong>Side Effects:</strong> Dizziness, dry cough, headache</p>
+                        <p><strong>Warning:</strong> Do not stop taking suddenly. Avoid potassium supplements unless directed by your doctor.</p>
+                    </div>
+                </div>
+
+                <div id="metformin-info" class="prescription-info">
+                    <h5>Metformin</h5>
+                    <span class="badge bg-primary">Diabetes Medication</span>
+                    <span class="badge bg-warning text-dark">Take with meals</span>
+
+                    <div class="mt-3">
+                        <p><strong>Dosage:</strong> 500mg twice daily</p>
+                        <p><strong>Purpose:</strong> Control blood sugar levels in type 2 diabetes</p>
+                        <p><strong>Instructions:</strong> Take with breakfast and dinner. Monitor blood sugar levels as directed.</p>
+                        <p><strong>Side Effects:</strong> Stomach upset, diarrhea, nausea</p>
+                        <p><strong>Warning:</strong> Side effects often decrease over time. Report persistent side effects to your doctor.</p>
+                    </div>
+                </div>
+
+                <div id="atorvastatin-info" class="prescription-info">
+                    <h5>Atorvastatin</h5>
+                    <span class="badge bg-primary">Cholesterol Medication</span>
+                    <span class="badge bg-info">Take in the evening</span>
+
+                    <div class="mt-3">
+                        <p><strong>Dosage:</strong> 20mg once daily</p>
+                        <p><strong>Purpose:</strong> Lower cholesterol and reduce risk of heart disease</p>
+                        <p><strong>Instructions:</strong> Take in the evening, with or without food.</p>
+                        <p><strong>Side Effects:</strong> Muscle pain, fatigue, digestive issues</p>
+                        <p><strong>Warning:</strong> Report any unexplained muscle pain, tenderness, or weakness to your doctor immediately.</p>
+                    </div>
+                </div>
+
+                <div id="levothyroxine-info" class="prescription-info">
+                    <h5>Levothyroxine</h5>
+                    <span class="badge bg-primary">Thyroid Medication</span>
+                    <span class="badge bg-warning text-dark">Take on empty stomach</span>
+
+                    <div class="mt-3">
+                        <p><strong>Dosage:</strong> 100mcg once daily</p>
+                        <p><strong>Purpose:</strong> Treatment of hypothyroidism</p>
+                        <p><strong>Instructions:</strong> Take first thing in the morning on an empty stomach, at least 30-60 minutes before eating. Take with a full glass of water.</p>
+                        <p><strong>Side Effects:</strong> Usually only occur with incorrect dosage</p>
+                        <p><strong>Warning:</strong> Do not take with calcium or iron supplements. Wait at least 4 hours between levothyroxine and these supplements.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Medication Reminders -->
     <div class="row">
         <div class="col-md-6">
@@ -115,7 +228,14 @@
                 <form id="medicationReminderForm">
                     <div class="mb-3">
                         <label for="medicationName" class="form-label">Medication Name</label>
-                        <input type="text" class="form-control" id="medicationName" required>
+                        <select class="form-select" id="medicationName" required>
+                            <option value="" selected disabled>Choose medication...</option>
+                            <option value="amoxicillin">Amoxicillin</option>
+                            <option value="lisinopril">Lisinopril</option>
+                            <option value="metformin">Metformin</option>
+                            <option value="atorvastatin">Atorvastatin</option>
+                            <option value="levothyroxine">Levothyroxine</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="reminderTime" class="form-label">Reminder Time</label>
@@ -264,6 +384,24 @@
     }).then(res => {
         botui.message.add({ content: `You asked: ${res.value}` });
     });
+
+    // Prescription Guide Function
+    function showPrescriptionInfo() {
+        // Hide all prescription info boxes first
+        const prescriptionInfos = document.querySelectorAll('.prescription-info');
+        prescriptionInfos.forEach(info => {
+            info.style.display = 'none';
+        });
+
+        // Show the selected prescription info
+        const selectedMed = document.getElementById('prescriptionSelect').value;
+        if (selectedMed) {
+            const selectedInfo = document.getElementById(`${selectedMed}-info`);
+            if (selectedInfo) {
+                selectedInfo.style.display = 'block';
+            }
+        }
+    }
 </script>
 </body>
 </html>
