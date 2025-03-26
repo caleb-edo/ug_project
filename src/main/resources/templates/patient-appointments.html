@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(315deg, #6a11cb, #ffffff);
+            padding: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .header {
+            background-color: #6a11cb;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .content-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .content-card h3 {
+            color: #6a11cb;
+        }
+        .appointment-card {
+            border-left: 4px solid #6a11cb;
+            transition: transform 0.2s;
+        }
+        .appointment-card:hover {
+            transform: translateX(5px);
+        }
+        .appointment-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .container {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header d-flex justify-content-between align-items-center">
+        <div>
+            <h1>My Appointments</h1>
+            <p>Manage your healthcare appointments</p>
+        </div>
+        <div>
+            <a href="/patient/dashboard" class="btn btn-light me-2">Dashboard</a>
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Request New Appointment -->
+            <div class="content-card">
+                <h3>Request Appointment</h3>
+                <form id="appointmentForm">
+                    <input type="hidden" id="doctor-id" th:value="${patient.doctor != null ? patient.doctor.id : ''}" />
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="appointmentDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="appointmentTime" class="form-label">Time</label>
+                        <select class="form-select" id="appointmentTime" required disabled>
+                            <option value="" selected disabled>Select a date first</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="appointmentNotes" class="form-label">Reason for Visit</label>
+                        <textarea class="form-control" id="appointmentNotes" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Request Appointment</button>
+                </form>
+            </div>
+
+            <!-- Appointment Info -->
+            <div class="content-card">
+                <h3>Appointment Information</h3>
+                <div class="alert alert-info">
+                    <strong>How it works:</strong>
+                    <ul class="mb-0">
+                        <li>Select a date and available time</li>
+                        <li>Your doctor will review your request</li>
+                        <li>You'll receive confirmation once approved</li>
+                        <li>You can reschedule or cancel if needed</li>
+                    </ul>
+                </div>
+                <p>If you need immediate medical attention, please call your doctor's office directly or emergency services.</p>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Appointment Tabs -->
+            <div class="content-card">
+                <ul class="nav nav-tabs" id="appointmentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="true">
+                            Pending
+                            <span class="badge bg-warning text-dark" th:text="${pendingAppointments.size()}">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="false">
+                            Upcoming
+                            <span class="badge bg-success" th:text="${confirmedAppointments.size()}">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab" aria-controls="past" aria-selected="false">Past</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-3" id="appointmentTabContent">
+                    <!-- Pending Appointments -->
+                    <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+                        <div class="appointment-list">
+                            <div th:if="${pendingAppointments.isEmpty()}" class="alert alert-info">
+                                You don't have any pending appointment requests.
+                            </div>
+                            <div th:each="appointment : ${pendingAppointments}" class="card appointment-card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Appointment with Dr. <span th:text="${appointment.doctor.fullName}"></span></h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">
+                                        <span th:text="${#temporals.format(appointment.appointmentDateTime, 'EEEE, MMMM d, yyyy')}"></span> at
+                                        <span th:text="${#temporals.format(appointment.appointmentDateTime, 'h:mm a')}"></span>
+                                    </h6>
+                                    <p class="card-text" th:if="${appointment.notes != null and !appointment.notes.isEmpty()}" th:text="${appointment.notes}"></p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="badge bg-warning text-dark">Awaiting Confirmation</span>
+                                        <small class="text-muted">Requested on <span th:text="${#temporals.format(appointment.createdAt, 'MMM d, yyyy')}"></span></small>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary reschedule-btn"
+                                                    th:data-id="${appointment.id}"
+                                                    th:data-date="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd')}"
+                                                    th:data-time="${#temporals.format(appointment.appointmentDateTime, 'HH:mm')}">
+                                                Reschedule
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger cancel-btn" th:data-id="${appointment.id}">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Appointments -->
+                    <div class="tab-pane fade" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+                        <div class="appointment-list">
+                            <div th:if="${confirmedAppointments.isEmpty()}" class="alert alert-info">
+                                You don't have any upcoming appointments.
+                            </div>
+                            <div th:each="appointment : ${confirmedAppointments}" class="card appointment-card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Appointment with Dr. <span th:text="${appointment.doctor.fullName}"></span></h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">
+                                        <span th:text="${#temporals.format(appointment.appointmentDateTime, 'EEEE, MMMM d, yyyy')}"></span> at
+                                        <span th:text="${#temporals.format(appointment.appointmentDateTime, 'h:mm a')}"></span>
+                                    </h6>
+                                    <p class="card-text" th:if="${appointment.notes != null and !appointment.notes.isEmpty()}" th:text="${appointment.notes}"></p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="badge bg-success">Confirmed</span>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary reschedule-btn"
+                                                    th:data-id="${appointment.id}"
+                                                    th:data-date="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd')}"
+                                                    th:data-time="${#temporals.format(appointment.appointmentDateTime, 'HH:mm')}">
+                                                Reschedule
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger cancel-btn" th:data-id="${appointment.id}">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Past Appointments -->
+                    <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+                        <div class="appointment-list">
+                            <!-- Past appointments will be loaded here -->
+                            <div class="alert alert-info">No past appointments found.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Appointment Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rescheduleModalLabel">Reschedule Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rescheduleForm">
+                    <input type="hidden" id="rescheduleAppointmentId">
+                    <div class="mb-3">
+                        <label for="rescheduleDate" class="form-label">New Date</label>
+                        <input type="date" class="form-control" id="rescheduleDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rescheduleTime" class="form-label">New Time</label>
+                        <select class="form-select" id="rescheduleTime" required disabled>
+                            <option value="" selected disabled>Select a date first</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmReschedule">Reschedule</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Appointment Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Cancel Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this appointment?</p>
+                <div class="mb-3">
+                    <label for="cancelReason" class="form-label">Reason for cancellation (optional):</label>
+                    <textarea class="form-control" id="cancelReason" rows="3"></textarea>
+                </div>
+                <input type="hidden" id="cancelAppointmentId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep It</button>
+                <button type="button" class="btn btn-danger" id="confirmCancel">Yes, Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JavaScript for appointment functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get doctor ID
+        const doctorId = document.getElementById('doctor-id').value;
+
+// Initialize date picker min date to today
+        const today = new Date();
+        const appointmentDateInput = document.getElementById('appointmentDate');
+        if (appointmentDateInput) {
+            appointmentDateInput.min = today.toISOString().split('T')[0];
+
+// Event listener for date change to fetch available time slots
+            appointmentDateInput.addEventListener('change', function() {
+                const selectedDate = this.value;
+                if (selectedDate && doctorId) {
+                    fetchAvailableTimeSlots(doctorId, selectedDate, 'appointmentTime');
+                }
+            });
+        }
+
+// Initialize reschedule date picker
+        const rescheduleDateInput = document.getElementById('rescheduleDate');
+        if (rescheduleDateInput) {
+            rescheduleDateInput.min = today.toISOString().split('T')[0];
+
+// Event listener for date change
+            rescheduleDateInput.addEventListener('change', function() {
+                const selectedDate = this.value;
+                if (selectedDate && doctorId) {
+                    fetchAvailableTimeSlots(doctorId, selectedDate, 'rescheduleTime');
+                }
+            });
+        }
+
+// Functions to fetch available time slots
+        function fetchAvailableTimeSlots(doctorId, date, selectElementId) {
+            const timeSelect = document.getElementById(selectElementId);
+            timeSelect.disabled = true;
+
+// Clear previous options
+            while (timeSelect.options.length > 1) {
+                timeSelect.remove(1);
+            }
+
+// Add loading option
+            const loadingOption = document.createElement('option');
+            loadingOption.text = 'Loading available times...';
+            loadingOption.disabled = true;
+            loadingOption.selected = true;
+            timeSelect.add(loadingOption);
+
+            fetch(`/appointments/available-slots?doctorId=${doctorId}&date=${date}`)
+                .then(response => response.json())
+                .then(data => {
+// Remove loading option
+                    timeSelect.remove(timeSelect.options.length - 1);
+
+                    if (data.success && data.availableSlots && data.availableSlots.length > 0) {
+// Add available slots
+                        data.availableSlots.forEach(timeSlot => {
+                            const option = document.createElement('option');
+                            option.value = timeSlot;
+                            option.text = formatTime(timeSlot);
+                            timeSelect.add(option);
+                        });
+
+                        timeSelect.disabled = false;
+
+// Add default option
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.text = 'Select a time';
+                        defaultOption.disabled = true;
+                        defaultOption.selected = true;
+                        timeSelect.insertBefore(defaultOption, timeSelect.firstChild);
+                    } else {
+// No available slots
+                        const noSlotsOption = document.createElement('option');
+                        noSlotsOption.value = '';
+                        noSlotsOption.text = 'No available slots for this date';
+                        noSlotsOption.disabled = true;
+                        noSlotsOption.selected = true;
+                        timeSelect.add(noSlotsOption);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching available time slots:', error);
+
+// Show error message
+                    timeSelect.innerHTML = '<option value="" disabled selected>Error loading time slots</option>';
+                });
+        }
+
+// Format time for display (e.g., "14:30" to "2:30 PM")
+        function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12;
+            hour = hour ? hour : 12; // the hour '0' should be '12'
+            return `${hour}:${minutes} ${ampm}`;
+        }
+
+// Handle appointment form submission
+        const appointmentForm = document.getElementById('appointmentForm');
+        if (appointmentForm) {
+            appointmentForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const appointmentDate = document.getElementById('appointmentDate').value;
+                const appointmentTime = document.getElementById('appointmentTime').value;
+                const appointmentNotes = document.getElementById('appointmentNotes').value;
+
+                if (!appointmentDate || !appointmentTime) {
+                    alert('Please select both date and time for your appointment');
+                    return;
+                }
+
+// Submit the appointment request
+                fetch('/appointments/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'doctorId': doctorId,
+                        'appointmentDate': appointmentDate,
+                        'appointmentTime': appointmentTime,
+                        'notes': appointmentNotes
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Appointment request submitted successfully! Your doctor will review and confirm your appointment.');
+// Reset form
+                            appointmentForm.reset();
+// Refresh page or update UI
+                            window.location.reload();
+                        } else {
+                            alert('Failed to request appointment: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting appointment request:', error);
+                        alert('An error occurred while submitting your appointment request. Please try again later.');
+                    });
+            });
+        }
+
+// Setup cancel and reschedule buttons
+        document.querySelectorAll('.cancel-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const appointmentId = this.getAttribute('data-id');
+                document.getElementById('cancelAppointmentId').value = appointmentId;
+
+// Show modal
+                const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+                cancelModal.show();
+            });
+        });
+
+        document.querySelectorAll('.reschedule-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const appointmentId = this.getAttribute('data-id');
+                const currentDate = this.getAttribute('data-date');
+                const currentTime = this.getAttribute('data-time');
+
+                document.getElementById('rescheduleAppointmentId').value = appointmentId;
+                document.getElementById('rescheduleDate').value = currentDate;
+
+// Show modal
+                const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+                rescheduleModal.show();
+
+// Fetch available times for the current date
+                if (currentDate && doctorId) {
+                    fetchAvailableTimeSlots(doctorId, currentDate, 'rescheduleTime');
+                }
+            });
+        });
+
+// Handle cancel confirmation
+        document.getElementById('confirmCancel').addEventListener('click', function() {
+            const appointmentId = document.getElementById('cancelAppointmentId').value;
+            const reason = document.getElementById('cancelReason').value;
+
+            fetch(`/appointments/${appointmentId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'reason': reason
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+// Hide modal
+                        const cancelModal = bootstrap.Modal.getInstance(document.getElementById('cancelModal'));
+                        cancelModal.hide();
+
+                        alert('Appointment cancelled successfully');
+
+// Refresh page
+                        window.location.reload();
+                    } else {
+                        alert('Failed to cancel appointment: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cancelling appointment:', error);
+                    alert('An error occurred while cancelling your appointment. Please try again later.');
+                });
+        });
+
+// Handle reschedule confirmation
+        document.getElementById('confirmReschedule').addEventListener('click', function() {
+            const appointmentId = document.getElementById('rescheduleAppointmentId').value;
+            const newDate = document.getElementById('rescheduleDate').value;
+            const newTime = document.getElementById('rescheduleTime').value;
+
+            if (!newDate || !newTime) {
+                alert('Please select both date and time for rescheduling');
+                return;
+            }
+
+            fetch(`/appointments/${appointmentId}/reschedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'newDate': newDate,
+                    'newTime': newTime
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+// Hide modal
+                        const rescheduleModal = bootstrap.Modal.getInstance(document.getElementById('rescheduleModal'));
+                        rescheduleModal.hide();
+
+                        alert('Appointment rescheduled successfully');
+
+// Refresh page
+                        window.location.reload();
+                    } else {
+                        alert('Failed to reschedule appointment: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error rescheduling appointment:', error);
+                    alert('An error occurred while rescheduling your appointment. Please try again later.');
+                });
+        });
+    });
+</script>
+</body>
+</html>
