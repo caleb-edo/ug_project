@@ -34,6 +34,9 @@ public class Doctor extends User {
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Patient> patients;
 
+    @OneToMany(mappedBy = "prescribingDoctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Prescription> prescriptions;
+
     // Getters and Setters
     public String getFullName() {
         return fullName;
@@ -81,5 +84,13 @@ public class Doctor extends User {
 
     public void setPatients(List<Patient> patients) {
         this.patients = patients;
+    }
+
+    public List<Prescription> getPrescriptions() {
+        return prescriptions;
+    }
+
+    public void setPrescriptions(List<Prescription> prescriptions) {
+        this.prescriptions = prescriptions;
     }
 }

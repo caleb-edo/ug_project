@@ -6,6 +6,7 @@
     <title>Doctor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -20,12 +21,34 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .logo i {
+            margin-right: 8px;
+        }
+
+        .logo-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
         .metric-card {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
+            height: 100%;
         }
         .metric-card h3 {
             color: #198754;
@@ -42,41 +65,44 @@
         .patient-card:hover {
             transform: translateX(5px);
         }
-        .message-section {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 8px;
-            background: #f9f9f9;
-        }
+
         .feature-icon {
             font-size: 2rem;
             margin-bottom: 10px;
             color: #198754;
         }
 
-        /* Added hover-in animation for the dashboard container */
         .container {
             animation: fadeIn 0.5s ease-in-out;
+            overflow-anchor: none;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center">
+                <div class="logo-container me-4">
+                    <div class="logo">
+                        <i class="fas fa-heartbeat"></i>ChronicCare
+                    </div>
+                    <p class="logo-subtitle">Your Health, Our Priority</p>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        </div>
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1>Dr. <span th:text="${doctor.fullName}">Doctor Name</span></h1>
                 <p th:text="${doctor.specialization}">Specialization</p>
             </div>
-            <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn btn-danger">Logout</button>
-            </form>
         </div>
     </div>
 
@@ -108,7 +134,42 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-4">
+        <!-- Assign Patient Section -->
+        <div class="col-md-6">
+            <div class="metric-card h-100">
+                <h3>Assign a Patient</h3>
+                <p>Select an unassigned patient to provide ongoing care and monitoring for their chronic conditions</p>
+                <form action="/doctor/assign-patient" method="post">
+                    <div class="input-group mb-3">
+                        <select name="patientId" class="form-select" required>
+                            <option value="" disabled selected>Select a patient</option>
+                            <option th:each="patient : ${unassignedPatients}"
+                                    th:value="${patient.id}"
+                                    th:text="${patient.fullName}">Patient Name</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Assign</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Prescription Management -->
+        <div class="col-md-6">
+            <div class="metric-card text-center h-100">
+                <div class="feature-icon">💊</div>
+                <h3>Prescriptions</h3>
+                <p>Manage prescriptions and refill requests</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="/prescriptions/doctor" class="btn btn-primary">View Prescriptions</a>
+                    <a href="/prescriptions/doctor/new" class="btn btn-success">New Prescription</a>
+                    <a href="/prescriptions/doctor/refill-requests" class="btn btn-warning">Refill Requests</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
         <div class="col-md-12">
             <div class="metric-card">
                 <h3>Patient Statistics</h3>
@@ -136,10 +197,10 @@
         </div>
     </div>
 
-    <div class="row" id="patient-section">
+    <div class="row mb-4" id="patient-section">
         <div class="col-md-8">
             <!-- Recent Updates Section -->
-            <div class="metric-card">
+            <div class="metric-card h-100">
                 <h3>Recent Updates</h3>
                 <div class="table-responsive">
                     <table class="table">
@@ -167,7 +228,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="metric-card">
+            <div class="metric-card h-100">
                 <h3>Your Patients</h3>
                 <div class="patient-list">
                     <div th:each="patient : ${patients}" class="card patient-card p-3">
@@ -188,38 +249,18 @@
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <!-- Assign Patient Section -->
-        <div class="col-md-6">
-            <div class="metric-card">
-                <h3>Assign a Patient</h3>
-                <form action="/doctor/assign-patient" method="post">
-                    <div class="input-group mb-3">
-                        <select name="patientId" class="form-select" required>
-                            <option value="" disabled selected>Select a patient</option>
-                            <option th:each="patient : ${unassignedPatients}"
-                                    th:value="${patient.id}"
-                                    th:text="${patient.fullName}">Patient Name</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Assign</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Today's Schedule Quick View -->
-        <div class="col-md-6">
-            <div class="metric-card">
-                <h3>Today's Schedule</h3>
-                <p>Quick view of your appointments for today</p>
-                <a href="/appointments" class="btn btn-primary">View Full Schedule</a>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Bootstrap Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Prevent auto-scrolling on page load -->
+<script>
+    window.onload = function() {
+        setTimeout(function() {
+            window.scrollTo(0, 0);
+        }, 100);
+    };
+</script>
 </body>
 </html>

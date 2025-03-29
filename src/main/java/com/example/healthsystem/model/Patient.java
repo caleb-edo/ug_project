@@ -3,6 +3,7 @@ package com.example.healthsystem.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "patient")
@@ -41,6 +42,9 @@ public class Patient extends User {
 
     @Size(max = 500, message = "Current medications must be less than 500 characters")
     private String currentMedications;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Prescription> prescriptions;
 
     // Getters and Setters
     public String getFullName() {
@@ -113,5 +117,13 @@ public class Patient extends User {
 
     public void setDoctor(Doctor doctor) {
         this.doctor = doctor;
+    }
+
+    public List<Prescription> getPrescriptions() {
+        return prescriptions;
+    }
+
+    public void setPrescriptions(List<Prescription> prescriptions) {
+        this.prescriptions = prescriptions;
     }
 }

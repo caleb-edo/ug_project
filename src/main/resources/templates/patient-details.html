@@ -74,10 +74,21 @@
                 </div>
             </div>
 
-            <!-- Medical History -->
+            <!-- Current Prescriptions -->
             <div class="detail-card">
-                <h3>Medical History</h3>
-                <p th:text="${patient.medicalHistory ?: 'No medical history recorded'}">Medical History</p>
+                <h3>Current Prescriptions</h3>
+                <div th:if="${not #lists.isEmpty(patient.prescriptions)}">
+                    <div th:each="prescription : ${patient.prescriptions}" class="mb-3">
+                        <strong th:text="${prescription.medicationName}">Medication Name</strong>
+                        <p>
+                            Dosage: <span th:text="${prescription.dosage}">Dosage</span><br>
+                            Frequency: <span th:text="${prescription.frequency}">Frequency</span><br>
+                            Status: <span th:text="${prescription.status}">Status</span><br>
+                            Refills Remaining: <span th:text="${prescription.refillsRemaining}">Refills</span>
+                        </p>
+                    </div>
+                </div>
+                <p th:if="${#lists.isEmpty(patient.prescriptions)}">No current prescriptions</p>
             </div>
         </div>
 
@@ -96,20 +107,6 @@
                     </div>
                 </div>
                 <canvas id="healthMetricsChart" class="mt-4"></canvas>
-            </div>
-
-            <!-- Medications and Allergies -->
-            <div class="detail-card">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h3>Current Medications</h3>
-                        <p th:text="${patient.currentMedications ?: 'No current medications'}">Medications</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h3>Allergies</h3>
-                        <p th:text="${patient.allergies ?: 'No known allergies'}">Allergies</p>
-                    </div>
-                </div>
             </div>
 
             <!-- Trend Analysis -->

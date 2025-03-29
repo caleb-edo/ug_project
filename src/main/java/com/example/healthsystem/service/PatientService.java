@@ -2,14 +2,12 @@ package com.example.healthsystem.service;
 
 import com.example.healthsystem.model.Doctor;
 import com.example.healthsystem.model.Patient;
+import com.example.healthsystem.model.Prescription;
 import com.example.healthsystem.repositories.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PatientService {
@@ -57,5 +55,19 @@ public class PatientService {
     }
     public List<Patient> getAllPatients() {
         return patientRepository.findAll();
+    }
+
+    // Get active medications for a patient
+    public List<String> getActiveMedications(Long patientId) {
+        Patient patient = getPatientById(patientId);
+        List<String> medications = new ArrayList<>();
+
+        for (Prescription prescription : patient.getPrescriptions()) {
+            if (prescription.getStatus() == Prescription.PrescriptionStatus.ACTIVE) {
+                medications.add(prescription.getMedicationName());
+            }
+        }
+
+        return medications;
     }
 }

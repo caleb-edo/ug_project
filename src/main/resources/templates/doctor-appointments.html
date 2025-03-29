@@ -68,7 +68,7 @@
             <p>Manage your patient appointments</p>
         </div>
         <div>
-            <a href="/doctor/dashboard" class="btn btn-light me-2">Dashboard</a>
+            <a href="/doctor/dashboard" class="btn btn-light me-2">Back to Dashboard</a>
             <form th:action="@{/logout}" method="post" class="d-inline">
                 <button type="submit" class="btn btn-danger">Logout</button>
             </form>
@@ -203,7 +203,7 @@
     </div>
 </div>
 
-<!-- Confirm Appointment Modal -->
+<!-- Confirm Appointment Tab -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -223,7 +223,7 @@
     </div>
 </div>
 
-<!-- Cancel Appointment Modal -->
+<!-- Cancel Appointment Tab -->
 <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -247,7 +247,7 @@
     </div>
 </div>
 
-<!-- Complete Appointment Modal -->
+<!-- Complete Appointment Tab -->
 <div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -271,7 +271,7 @@
     </div>
 </div>
 
-<!-- Daily Schedule View Modal -->
+<!-- Daily Schedule View Tab -->
 <div class="modal fade" id="dayScheduleModal" tabindex="-1" aria-labelledby="dayScheduleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -287,7 +287,7 @@
                         </div>
                     </div>
                     <div id="dayScheduleList">
-                        <!-- Day schedule will be populated here -->
+                        <!-- Day schedule will be here -->
                     </div>
                 </div>
             </div>
@@ -303,6 +303,7 @@
 
 <!-- JavaScript for appointment functionality -->
 <script>
+    // JavaScript for appointment functionality
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize buttons for appointment actions
         function initializeAppointmentButtons() {
@@ -408,160 +409,159 @@
                     alert('An error occurred while cancelling the appointment. Please try again later.');
                 });
         });
-    });
 
-    // Handle complete appointment
-    document.getElementById('confirmCompleteBtn').addEventListener('click', function() {
-        const appointmentId = document.getElementById('completeAppointmentId').value;
-        const notes = document.getElementById('appointmentNotes').value;
+        // Handle complete appointment - MOVED INSIDE DOMContentLoaded
+        document.getElementById('confirmCompleteBtn').addEventListener('click', function() {
+            const appointmentId = document.getElementById('completeAppointmentId').value;
+            const notes = document.getElementById('appointmentNotes').value;
 
-        fetch(`/appointments/${appointmentId}/complete`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                'notes': notes
+            fetch(`/appointments/${appointmentId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'notes': notes
+                })
             })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-// Hide modal
-                    const completeModal = bootstrap.Modal.getInstance(document.getElementById('completeModal'));
-                    completeModal.hide();
-
-                    alert('Appointment marked as completed');
-
-// Refresh page
-                    window.location.reload();
-                } else {
-                    alert('Failed to complete appointment: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error completing appointment:', error);
-                alert('An error occurred while completing the appointment. Please try again later.');
-            });
-    });
-
-    // Calendar functionality
-    function generateCalendar() {
-        const calendarGrid = document.getElementById('calendarGrid');
-        if (!calendarGrid) return;
-
-        const currentMonthElement = document.getElementById('currentMonth');
-
-// Initialize with current month
-        let currentDate = new Date();
-        let currentMonth = currentDate.getMonth();
-        let currentYear = currentDate.getFullYear();
-
-        function updateCalendar() {
-// Update month title
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"];
-            currentMonthElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-
-// Clear existing calendar
-            calendarGrid.innerHTML = '';
-
-// Create day headers
-            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            const headerRow = document.createElement('div');
-            headerRow.className = 'row mb-2';
-
-            dayNames.forEach(day => {
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'col text-center fw-bold';
-                dayHeader.textContent = day;
-                headerRow.appendChild(dayHeader);
-            });
-
-            calendarGrid.appendChild(headerRow);
-
-// Get first day of month and total days
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-// Generate calendar days
-            let dayCount = 1;
-            for (let i = 0; i < 6; i++) { // Max 6 weeks in a month view
-                const weekRow = document.createElement('div');
-                weekRow.className = 'row mb-2';
-
-                for (let j = 0; j < 7; j++) { // 7 days in a week
-                    const dayCell = document.createElement('div');
-                    dayCell.className = 'col p-2 border text-center';
-
-                    if (i === 0 && j < firstDay) {
-// Empty cells before first day
-                        dayCell.textContent = '';
-                    } else if (dayCount > daysInMonth) {
-// Empty cells after last day
-                        dayCell.textContent = '';
-                    } else {
-// Regular day cell
-                        dayCell.textContent = dayCount;
-
-// Highlight today
-                        if (dayCount === currentDate.getDate() &&
-                            currentMonth === currentDate.getMonth() &&
-                            currentYear === currentDate.getFullYear()) {
-                            dayCell.classList.add('bg-success', 'text-white');
-                        }
-
-// Make day clickable to show appointments
-                        dayCell.style.cursor = 'pointer';
-                        dayCell.setAttribute('data-date', `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayCount).padStart(2, '0')}`);
-                        dayCell.addEventListener('click', showAppointmentsForDay);
-
-                        dayCount++;
-                    }
-
-                    weekRow.appendChild(dayCell);
-                }
-
-                calendarGrid.appendChild(weekRow);
-
-                if (dayCount > daysInMonth) {
-                    break; // Stop if we've used all days
-                }
-            }
-        }
-
-// Function to show appointments for the selected day
-        function showAppointmentsForDay() {
-            const selectedDate = this.getAttribute('data-date');
-
-// Update modal title
-            const modalTitle = document.getElementById('dayScheduleModalLabel');
-            modalTitle.textContent = `Appointments for ${formatDate(selectedDate)}`;
-
-// Show loading spinner
-            document.getElementById('dayScheduleLoading').style.display = 'block';
-            document.getElementById('dayScheduleList').innerHTML = '';
-
-// Show the modal
-            const dayScheduleModal = new bootstrap.Modal(document.getElementById('dayScheduleModal'));
-            dayScheduleModal.show();
-
-// Fetch appointments for the selected date
-            fetch(`/appointments/doctor/day?date=${selectedDate}`)
                 .then(response => response.json())
                 .then(data => {
-// Hide loading spinner
-                    document.getElementById('dayScheduleLoading').style.display = 'none';
+                    if (data.success) {
+                        // Hide modal
+                        const completeModal = bootstrap.Modal.getInstance(document.getElementById('completeModal'));
+                        completeModal.hide();
 
-                    const dayScheduleList = document.getElementById('dayScheduleList');
+                        alert('Appointment marked as completed');
 
-                    if (data.success && data.appointments && data.appointments.length > 0) {
-// Create appointment items
-                        data.appointments.forEach(appointment => {
-                            const appointmentCard = document.createElement('div');
-                            appointmentCard.className = 'card mb-2';
+                        // Refresh page
+                        window.location.reload();
+                    } else {
+                        alert('Failed to complete appointment: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error completing appointment:', error);
+                    alert('An error occurred while completing the appointment. Please try again later.');
+                });
+        });
 
-                            appointmentCard.innerHTML = `
+        // Calendar functionality
+        function generateCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (!calendarGrid) return;
+
+            const currentMonthElement = document.getElementById('currentMonth');
+
+            // Initialize with current month
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+
+            function updateCalendar() {
+                // Update month title
+                const monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+                currentMonthElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+                // Clear existing calendar
+                calendarGrid.innerHTML = '';
+
+                // Create day headers
+                const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                const headerRow = document.createElement('div');
+                headerRow.className = 'row mb-2';
+
+                dayNames.forEach(day => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'col text-center fw-bold';
+                    dayHeader.textContent = day;
+                    headerRow.appendChild(dayHeader);
+                });
+
+                calendarGrid.appendChild(headerRow);
+
+                // Get first day of month and total days
+                const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+                // Generate calendar days
+                let dayCount = 1;
+                for (let i = 0; i < 6; i++) { // Max 6 weeks in a month view
+                    const weekRow = document.createElement('div');
+                    weekRow.className = 'row mb-2';
+
+                    for (let j = 0; j < 7; j++) { // 7 days in a week
+                        const dayCell = document.createElement('div');
+                        dayCell.className = 'col p-2 border text-center';
+
+                        if (i === 0 && j < firstDay) {
+                            // Empty cells before first day
+                            dayCell.textContent = '';
+                        } else if (dayCount > daysInMonth) {
+                            // Empty cells after last day
+                            dayCell.textContent = '';
+                        } else {
+                            // Regular day cell
+                            dayCell.textContent = dayCount;
+
+                            // Highlight today
+                            if (dayCount === currentDate.getDate() &&
+                                currentMonth === currentDate.getMonth() &&
+                                currentYear === currentDate.getFullYear()) {
+                                dayCell.classList.add('bg-success', 'text-white');
+                            }
+
+                            // Make day clickable to show appointments
+                            dayCell.style.cursor = 'pointer';
+                            dayCell.setAttribute('data-date', `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayCount).padStart(2, '0')}`);
+                            dayCell.addEventListener('click', showAppointmentsForDay);
+
+                            dayCount++;
+                        }
+
+                        weekRow.appendChild(dayCell);
+                    }
+
+                    calendarGrid.appendChild(weekRow);
+
+                    if (dayCount > daysInMonth) {
+                        break; // Stop if we've used all days
+                    }
+                }
+            }
+
+            // Function to show appointments for the selected day
+            function showAppointmentsForDay() {
+                const selectedDate = this.getAttribute('data-date');
+
+                // Update modal title
+                const modalTitle = document.getElementById('dayScheduleModalLabel');
+                modalTitle.textContent = `Appointments for ${formatDate(selectedDate)}`;
+
+                // Show loading spinner
+                document.getElementById('dayScheduleLoading').style.display = 'block';
+                document.getElementById('dayScheduleList').innerHTML = '';
+
+                // Show the modal
+                const dayScheduleModal = new bootstrap.Modal(document.getElementById('dayScheduleModal'));
+                dayScheduleModal.show();
+
+                // Fetch appointments for the selected date
+                fetch(`/appointments/doctor/day?date=${selectedDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading spinner
+                        document.getElementById('dayScheduleLoading').style.display = 'none';
+
+                        const dayScheduleList = document.getElementById('dayScheduleList');
+
+                        if (data.success && data.appointments && data.appointments.length > 0) {
+                            // Create appointment items
+                            data.appointments.forEach(appointment => {
+                                const appointmentCard = document.createElement('div');
+                                appointmentCard.className = 'card mb-2';
+
+                                appointmentCard.innerHTML = `
 <div class="card-body">
     <div class="d-flex justify-content-between align-items-start">
         <div>
@@ -579,91 +579,91 @@
 </div>
 `;
 
-                            dayScheduleList.appendChild(appointmentCard);
-                        });
+                                dayScheduleList.appendChild(appointmentCard);
+                            });
 
-// Add event listeners to newly created buttons
-                        initializeAppointmentButtons();
-                    } else {
-// No appointments for this day
-                        dayScheduleList.innerHTML = '<div class="alert alert-info">No appointments scheduled for this day.</div>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching appointments for day:', error);
-                    document.getElementById('dayScheduleLoading').style.display = 'none';
-                    document.getElementById('dayScheduleList').innerHTML = '<div class="alert alert-danger">Error loading appointments. Please try again.</div>';
-                });
-        }
-
-// Helper function to format date for display
-        function formatDate(dateString) {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString(undefined, options);
-        }
-
-// Helper function to get the appropriate badge class for appointment status
-        function getStatusBadgeClass(status) {
-            switch (status) {
-                case 'CONFIRMED': return 'bg-success';
-                case 'REQUESTED': return 'bg-warning text-dark';
-                case 'COMPLETED': return 'bg-info';
-                case 'CANCELLED': return 'bg-danger';
-                case 'RESCHEDULED': return 'bg-primary';
-                default: return 'bg-secondary';
+                            // Add event listeners to newly created buttons
+                            initializeAppointmentButtons();
+                        } else {
+                            // No appointments for this day
+                            dayScheduleList.innerHTML = '<div class="alert alert-info">No appointments scheduled for this day.</div>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching appointments for day:', error);
+                        document.getElementById('dayScheduleLoading').style.display = 'none';
+                        document.getElementById('dayScheduleList').innerHTML = '<div class="alert alert-danger">Error loading appointments. Please try again.</div>';
+                    });
             }
-        }
 
-// Helper function to generate appropriate action buttons based on appointment status
-        function getActionButtons(appointment) {
-            let buttons = '';
+            // Helper function to format date for display
+            function formatDate(dateString) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString(undefined, options);
+            }
 
-            switch (appointment.status) {
-                case 'REQUESTED':
-                    buttons = `
+            // Helper function to get the appropriate badge class for appointment status
+            function getStatusBadgeClass(status) {
+                switch (status) {
+                    case 'CONFIRMED': return 'bg-success';
+                    case 'REQUESTED': return 'bg-warning text-dark';
+                    case 'COMPLETED': return 'bg-info';
+                    case 'CANCELLED': return 'bg-danger';
+                    case 'RESCHEDULED': return 'bg-primary';
+                    default: return 'bg-secondary';
+                }
+            }
+
+            // Helper function to generate appropriate action buttons based on appointment status
+            function getActionButtons(appointment) {
+                let buttons = '';
+
+                switch (appointment.status) {
+                    case 'REQUESTED':
+                        buttons = `
 <button class="btn btn-success confirm-btn" data-id="${appointment.id}">Accept</button>
 <button class="btn btn-danger cancel-btn" data-id="${appointment.id}">Decline</button>
 `;
-                    break;
-                case 'CONFIRMED':
-                    buttons = `
+                        break;
+                    case 'CONFIRMED':
+                        buttons = `
 <button class="btn btn-outline-success complete-btn" data-id="${appointment.id}">Complete</button>
 <button class="btn btn-outline-danger cancel-btn" data-id="${appointment.id}">Cancel</button>
 `;
-                    break;
-                case 'COMPLETED':
-                    buttons = `
+                        break;
+                    case 'COMPLETED':
+                        buttons = `
 <button class="btn btn-outline-secondary" disabled>Completed</button>
 `;
-                    break;
-                default:
-                    buttons = '';
+                        break;
+                    default:
+                        buttons = '';
+                }
+
+                return buttons;
             }
 
-            return buttons;
-        }
+            // Load today's schedule
+            function loadTodaySchedule() {
+                const today = new Date();
+                const todayFormatted = today.toISOString().split('T')[0];
 
-// Load today's schedule
-        function loadTodaySchedule() {
-            const today = new Date();
-            const todayFormatted = today.toISOString().split('T')[0];
+                fetch(`/appointments/doctor/day?date=${todayFormatted}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const todaySchedule = document.getElementById('todaySchedule');
+                        const noAppointmentsToday = document.getElementById('noAppointmentsToday');
 
-            fetch(`/appointments/doctor/day?date=${todayFormatted}`)
-                .then(response => response.json())
-                .then(data => {
-                    const todaySchedule = document.getElementById('todaySchedule');
-                    const noAppointmentsToday = document.getElementById('noAppointmentsToday');
+                        if (data.success && data.appointments && data.appointments.length > 0) {
+                            // Hide the "no appointments" message
+                            noAppointmentsToday.style.display = 'none';
 
-                    if (data.success && data.appointments && data.appointments.length > 0) {
-// Hide the "no appointments" message
-                        noAppointmentsToday.style.display = 'none';
+                            // Create appointment items
+                            data.appointments.forEach(appointment => {
+                                const appointmentItem = document.createElement('div');
+                                appointmentItem.className = 'card mb-2';
 
-// Create appointment items
-                        data.appointments.forEach(appointment => {
-                            const appointmentItem = document.createElement('div');
-                            appointmentItem.className = 'card mb-2';
-
-                            appointmentItem.innerHTML = `
+                                appointmentItem.innerHTML = `
 <div class="card-body">
     <div class="d-flex justify-content-between align-items-center">
         <div>
@@ -675,46 +675,46 @@
 </div>
 `;
 
-                            todaySchedule.appendChild(appointmentItem);
-                        });
-                    } else {
-// Show the "no appointments" message
-                        noAppointmentsToday.style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching today\'s schedule:', error);
-                });
+                                todaySchedule.appendChild(appointmentItem);
+                            });
+                        } else {
+                            // Show the "no appointments" message
+                            noAppointmentsToday.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching today\'s schedule:', error);
+                    });
+            }
+
+            // Initialize calendar
+            updateCalendar();
+
+            // Load today's schedule
+            loadTodaySchedule();
+
+            // Add event listeners for previous/next month buttons
+            document.getElementById('prevMonth').addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                updateCalendar();
+            });
+
+            document.getElementById('nextMonth').addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                updateCalendar();
+            });
         }
 
-// Initialize calendar
-        updateCalendar();
-
-// Load today's schedule
-        loadTodaySchedule();
-
-// Add event listeners for previous/next month buttons
-        document.getElementById('prevMonth').addEventListener('click', function() {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            updateCalendar();
-        });
-
-        document.getElementById('nextMonth').addEventListener('click', function() {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            updateCalendar();
-        });
-    }
-
-    // Initialize calendar if it exists
-    generateCalendar();
+        // Initialize calendar if it exists
+        generateCalendar();
     });
 </script>
 </body>
