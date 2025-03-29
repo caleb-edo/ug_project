@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Prescription</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(315deg, #198754, #ffffff);
+            padding: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .dashboard-header {
+            background-color: #198754;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .prescription-form {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .medication-info {
+            display: none;
+            background-color: #f8f9fa;
+            border-left: 4px solid #198754;
+            padding: 15px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .medication-info h5 {
+            color: #198754;
+            margin-bottom: 10px;
+        }
+        .container {
+            animation: fadeIn 0.5s ease-in-out;
+            overflow-anchor: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Create New Prescription</h1>
+            <div>
+                <a href="/prescriptions/doctor" class="btn btn-light me-2">All Prescriptions</a>
+                <a href="/prescriptions/doctor/refill-requests" class="btn btn-light me-2">Refill Requests</a>
+                <a href="/doctor/dashboard" class="btn btn-light">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card prescription-form">
+                <div class="card-header bg-success text-white">
+                    <h2>New Prescription Details</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/prescriptions/doctor/new}" method="post">
+                        <div class="mb-3">
+                            <label for="patientSelect" class="form-label">Patient</label>
+                            <select id="patientSelect" name="patientId" class="form-select" required>
+                                <option value="" disabled selected>Select Patient</option>
+                                <option th:each="patient : ${patients}"
+                                        th:value="${patient.id}"
+                                        th:text="${patient.fullName}">Patient Name</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="medicationName" class="form-label">Medication</label>
+                            <select class="form-select" id="medicationName" name="medicationName" onchange="showMedicationInfo()" required>
+                                <option value="" disabled selected>Select Medication</option>
+                                <option value="Amoxicillin">Amoxicillin</option>
+                                <option value="Lisinopril">Lisinopril</option>
+                                <option value="Metformin">Metformin</option>
+                                <option value="Atorvastatin">Atorvastatin</option>
+                                <option value="Levothyroxine">Levothyroxine</option>
+                                <option value="Sertraline">Sertraline</option>
+                                <option value="Omeprazole">Omeprazole</option>
+                                <option value="Albuterol">Albuterol</option>
+                                <option value="Amlodipine">Amlodipine</option>
+                                <option value="Prednisone">Prednisone</option>
+                            </select>
+                        </div>
+
+                        <!-- Medication Information Sections -->
+                        <div id="Amoxicillin-info" class="medication-info">
+                            <h5>Amoxicillin</h5>
+                            <span class="badge bg-primary">Antibiotic</span>
+                            <span class="badge bg-warning text-dark">Take with food</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 500mg three times daily</p>
+                                <p><strong>Purpose:</strong> Treatment of bacterial infections</p>
+                                <p><strong>Side Effects:</strong> Diarrhea, stomach upset, rash</p>
+                            </div>
+                        </div>
+
+                        <div id="Lisinopril-info" class="medication-info">
+                            <h5>Lisinopril</h5>
+                            <span class="badge bg-primary">ACE Inhibitor</span>
+                            <span class="badge bg-info">Take in the morning</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 10mg once daily</p>
+                                <p><strong>Purpose:</strong> Treatment of high blood pressure and heart failure</p>
+                                <p><strong>Side Effects:</strong> Dizziness, dry cough, headache</p>
+                            </div>
+                        </div>
+
+                        <div id="Metformin-info" class="medication-info">
+                            <h5>Metformin</h5>
+                            <span class="badge bg-primary">Antidiabetic</span>
+                            <span class="badge bg-warning text-dark">Take with meals</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 500mg twice daily with meals</p>
+                                <p><strong>Purpose:</strong> Control blood sugar levels in type 2 diabetes</p>
+                                <p><strong>Side Effects:</strong> Stomach upset, diarrhea, nausea</p>
+                            </div>
+                        </div>
+
+                        <div id="Atorvastatin-info" class="medication-info">
+                            <h5>Atorvastatin</h5>
+                            <span class="badge bg-primary">Statin</span>
+                            <span class="badge bg-info">Take in the evening</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 10-20mg once daily</p>
+                                <p><strong>Purpose:</strong> Lower cholesterol and reduce risk of heart disease</p>
+                                <p><strong>Side Effects:</strong> Muscle pain, fatigue, digestive issues</p>
+                            </div>
+                        </div>
+
+                        <div id="Levothyroxine-info" class="medication-info">
+                            <h5>Levothyroxine</h5>
+                            <span class="badge bg-primary">Thyroid Hormone</span>
+                            <span class="badge bg-warning text-dark">Take on empty stomach</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 50-200mcg once daily</p>
+                                <p><strong>Purpose:</strong> Treatment of hypothyroidism</p>
+                                <p><strong>Side Effects:</strong> Usually only occur with incorrect dosage</p>
+                            </div>
+                        </div>
+
+                        <div id="Sertraline-info" class="medication-info">
+                            <h5>Sertraline</h5>
+                            <span class="badge bg-primary">SSRI Antidepressant</span>
+                            <span class="badge bg-info">Can be taken morning or evening</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 50-100mg once daily</p>
+                                <p><strong>Purpose:</strong> Treatment of depression, anxiety, OCD, PTSD</p>
+                                <p><strong>Side Effects:</strong> Nausea, headache, insomnia, dry mouth</p>
+                            </div>
+                        </div>
+
+                        <div id="Omeprazole-info" class="medication-info">
+                            <h5>Omeprazole</h5>
+                            <span class="badge bg-primary">Proton Pump Inhibitor</span>
+                            <span class="badge bg-warning text-dark">Take before meals</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 20mg once daily</p>
+                                <p><strong>Purpose:</strong> Treatment of GERD, acid reflux, stomach ulcers</p>
+                                <p><strong>Side Effects:</strong> Headache, stomach pain, nausea, diarrhea</p>
+                            </div>
+                        </div>
+
+                        <div id="Albuterol-info" class="medication-info">
+                            <h5>Albuterol</h5>
+                            <span class="badge bg-primary">Bronchodilator</span>
+                            <span class="badge bg-info">Inhaler</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 1-2 puffs every 4-6 hours as needed</p>
+                                <p><strong>Purpose:</strong> Quick relief of asthma symptoms, bronchospasm</p>
+                                <p><strong>Side Effects:</strong> Nervousness, tremor, increased heart rate</p>
+                            </div>
+                        </div>
+
+                        <div id="Amlodipine-info" class="medication-info">
+                            <h5>Amlodipine</h5>
+                            <span class="badge bg-primary">Calcium Channel Blocker</span>
+                            <span class="badge bg-info">Can be taken any time of day</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> 5-10mg once daily</p>
+                                <p><strong>Purpose:</strong> Treatment of high blood pressure and angina</p>
+                                <p><strong>Side Effects:</strong> Swelling in ankles/feet, flushing, headache</p>
+                            </div>
+                        </div>
+
+                        <div id="Prednisone-info" class="medication-info">
+                            <h5>Prednisone</h5>
+                            <span class="badge bg-primary">Corticosteroid</span>
+                            <span class="badge bg-warning text-dark">Take with food</span>
+                            <div class="mt-3">
+                                <p><strong>Common Dosage:</strong> Varies widely based on condition</p>
+                                <p><strong>Purpose:</strong> Anti-inflammatory, immunosuppressive, treats various conditions</p>
+                                <p><strong>Side Effects:</strong> Increased appetite, mood changes, fluid retention</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dosage" class="form-label">Dosage</label>
+                            <input type="text" class="form-control" id="dosage" name="dosage" required>
+                            <small class="text-muted">Include amount and unit (e.g., 500mg, 10mg, 2 puffs)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="frequency" class="form-label">Frequency</label>
+                            <select class="form-select" id="frequency" name="frequency" required>
+                                <option value="" disabled selected>Select frequency</option>
+                                <option value="Once daily">Once daily</option>
+                                <option value="Twice daily">Twice daily</option>
+                                <option value="Three times daily">Three times daily</option>
+                                <option value="Four times daily">Four times daily</option>
+                                <option value="Every 4-6 hours">Every 4-6 hours</option>
+                                <option value="Every 6-8 hours">Every 6-8 hours</option>
+                                <option value="Every 12 hours">Every 12 hours</option>
+                                <option value="As needed">As needed</option>
+                                <option value="Before meals">Before meals</option>
+                                <option value="With meals">With meals</option>
+                                <option value="At bedtime">At bedtime</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expirationDate" class="form-label">Expiration Date</label>
+                                <input type="date" class="form-control" id="expirationDate" name="expirationDate" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="refillsRemaining" class="form-label">Refills Allowed</label>
+                                <input type="number" class="form-control" id="refillsRemaining" name="refillsRemaining"
+                                       min="0" max="5" value="3" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Additional Instructions</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Special instructions for patient (e.g., take with food, avoid alcohol)"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <a href="/prescriptions/doctor" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">Create Prescription</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Prevent auto-scrolling on page load
+    window.onload = function() {
+        setTimeout(function() {
+            window.scrollTo(0, 0);
+        }, 100);
+    };
+
+    // Show medication information when selection changes
+    function showMedicationInfo() {
+        // Hide all medication info boxes first
+        const medicationInfos = document.querySelectorAll('.medication-info');
+        medicationInfos.forEach(info => {
+            info.style.display = 'none';
+        });
+
+        // Show the selected medication info
+        const selectedMed = document.getElementById('medicationName').value;
+        if (selectedMed) {
+            const selectedInfo = document.getElementById(`${selectedMed}-info`);
+            if (selectedInfo) {
+                selectedInfo.style.display = 'block';
+
+                // Auto-update dosage field with suggested dosage (optional)
+                const dosageInput = document.getElementById('dosage');
+                if (dosageInput) {
+                    // Extract dosage suggestion from the info panel
+                    const dosageText = selectedInfo.querySelector('p:nth-child(1)').textContent;
+                    const dosageMatch = dosageText.match(/Common Dosage:\s+(.*)/);
+                    if (dosageMatch && dosageMatch[1]) {
+                        // Only set if field is empty or user hasn't manually changed it
+                        if (!dosageInput.value || dosageInput.getAttribute('data-auto-filled') === 'true') {
+                            dosageInput.value = dosageMatch[1].split(' ')[0]; // Just get the first part (e.g., "500mg")
+                            dosageInput.setAttribute('data-auto-filled', 'true');
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Add event listener for manual changes to dosage
+    document.getElementById('dosage').addEventListener('input', function() {
+        this.removeAttribute('data-auto-filled');
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refill Requests</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(315deg, #198754, #ffffff);
+            padding: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .dashboard-header {
+            background-color: #198754;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .refill-card {
+            border-left: 4px solid #198754;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .refill-card:hover {
+            transform: translateX(5px);
+        }
+        .container {
+            animation: fadeIn 0.5s ease-in-out;
+            overflow-anchor: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Refill Requests</h1>
+            <div>
+                <a href="/prescriptions/doctor" class="btn btn-light me-2">View Prescriptions</a>
+                <a href="/prescriptions/doctor/new" class="btn btn-light me-2">New Prescription</a>
+                <a href="/doctor/dashboard" class="btn btn-light">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h2>Pending Refill Requests</h2>
+                </div>
+                <div class="card-body">
+                    <div th:if="${pendingRefills.isEmpty()}">
+                        <p class="alert alert-info">No pending refill requests.</p>
+                    </div>
+                    <div th:each="prescription : ${pendingRefills}" class="card refill-card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="card-title" th:text="${prescription.medicationName}">Medication Name</h5>
+                                    <p class="card-text">
+                                        <strong>Patient:</strong> <span th:text="${prescription.patient.fullName}">Patient Name</span><br>
+                                        <strong>Dosage:</strong> <span th:text="${prescription.dosage}">Dosage</span><br>
+                                        <strong>Last Refill Request:</strong> <span th:text="${prescription.lastRefillRequestDate}">Request Date</span><br>
+                                        <strong>Current Refills Remaining:</strong> <span th:text="${prescription.refillsRemaining}">0</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <form th:action="@{/prescriptions/doctor/process-refill}" method="post" class="d-inline">
+                                        <input type="hidden" name="prescriptionId" th:value="${prescription.id}">
+                                        <input type="hidden" name="approve" value="true">
+                                        <button type="submit" class="btn btn-success me-2">Approve</button>
+                                    </form>
+                                    <form th:action="@{/prescriptions/doctor/process-refill}" method="post" class="d-inline">
+                                        <input type="hidden" name="prescriptionId" th:value="${prescription.id}">
+                                        <input type="hidden" name="approve" value="false">
+                                        <button type="submit" class="btn btn-danger">Deny</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Prevent auto-scrolling on page load -->
+<script>
+    window.onload = function() {
+        setTimeout(function() {
+            window.scrollTo(0, 0);
+        }, 100);
+    };
+</script>
+</body>
+</html>
