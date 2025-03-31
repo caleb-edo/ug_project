@@ -305,6 +305,8 @@
 </div>
 
 <script>
+    // Update the JavaScript portion of register.html
+
     document.addEventListener("DOMContentLoaded", function () {
         const registerForm = document.getElementById("register-form");
         const roleInput = document.getElementById("role");
@@ -322,10 +324,32 @@
                 // Update the hidden role input
                 roleInput.value = this.dataset.role;
 
+                // Clear any values in the form fields from the previously selected role section
+                // This prevents values from inactive fields from being submitted
+                if (this.dataset.role === "PATIENT") {
+                    // Clear doctor fields
+                    clearFormFields(doctorFields);
+                } else {
+                    // Clear patient fields
+                    clearFormFields(patientFields);
+                }
+
                 // Show/hide appropriate fields
                 toggleRoleFields();
             });
         });
+
+        // Function to clear all form fields in a container
+        function clearFormFields(container) {
+            const formElements = container.querySelectorAll("input, select, textarea");
+            formElements.forEach(element => {
+                if (element.type === "text" || element.type === "tel" || element.type === "date" || element.tagName.toLowerCase() === "textarea") {
+                    element.value = "";
+                } else if (element.type === "select-one") {
+                    element.selectedIndex = 0;
+                }
+            });
+        }
 
         // Function to toggle fields based on role
         function toggleRoleFields() {
@@ -354,12 +378,16 @@
             const patientInputs = patientFields.querySelectorAll("input, select, textarea");
             patientInputs.forEach(input => {
                 input.required = type === "patient";
+                // Also disable fields that are not required to prevent their values from being submitted
+                input.disabled = type !== "patient";
             });
 
             // Doctor fields
             const doctorInputs = doctorFields.querySelectorAll("input, select, textarea");
             doctorInputs.forEach(input => {
                 input.required = type === "doctor";
+                // Also disable fields that are not required to prevent their values from being submitted
+                input.disabled = type !== "doctor";
             });
         }
 

@@ -183,7 +183,6 @@
                 <input class="form-check-input" type="checkbox" id="remember-me">
                 <label class="form-check-label" for="remember-me">Remember me</label>
             </div>
-            <a href="#" class="forgot-password">Forgot password?</a>
         </div>
 
         <button type="submit" class="btn btn-primary">
@@ -234,14 +233,6 @@
             control.addEventListener('blur', function() {
                 this.parentElement.style.transform = 'translateX(0)';
             });
-        });
-
-
-
-        // Disable forgot password link (just for visual design)
-        document.querySelector('.forgot-password').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Password recovery is not implemented in this demo');
         });
     });
 </script>
