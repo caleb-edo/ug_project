@@ -6,7 +6,7 @@ import com.example.healthsystem.model.Patient;
 import com.example.healthsystem.service.DoctorService;
 import com.example.healthsystem.service.MessageService;
 import com.example.healthsystem.service.PatientService;
-import com.example.healthsystem.service.UserService;
+import com.example.healthsystem.service.PatientUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +30,7 @@ public class DoctorController {
     private MessageService messageService;
 
     @Autowired
-    private UserService userService;
+    private PatientUpdateService patientUpdateService;
 
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
@@ -46,7 +46,7 @@ public class DoctorController {
             model.addAttribute("patients", doctor.getPatients());
             model.addAttribute("unassignedPatients", unassignedPatients);
             model.addAttribute("patientStats", doctorService.getPatientStatistics(doctor.getId()));
-            model.addAttribute("recentUpdates", doctorService.getRecentPatientUpdates(doctor.getId()));
+            model.addAttribute("recentUpdates", patientUpdateService.getRecentUpdatesForDoctor(doctor));
             model.addAttribute("messages", messages);
 
             return "doctor-dashboard";
