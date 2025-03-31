@@ -1,5 +1,6 @@
 package com.example.healthsystem.controllers;
 
+import com.example.healthsystem.dto.AppointmentDTO;
 import com.example.healthsystem.model.Appointment;
 import com.example.healthsystem.model.Doctor;
 import com.example.healthsystem.model.Patient;
@@ -48,6 +49,11 @@ public class AppointmentController {
             Doctor doctor = doctorService.getDoctorByUsername(username);
             List<Appointment> pendingAppointments = appointmentService.getPendingAppointmentsByDoctor(doctor);
             List<Appointment> confirmedAppointments = appointmentService.getConfirmedAppointmentsByDoctor(doctor);
+            // Also fetch rescheduled appointments
+            List<Appointment> rescheduledAppointments = appointmentService.getRescheduledAppointmentsByDoctor(doctor);
+
+            // Add rescheduled appointments to pending for display
+            pendingAppointments.addAll(rescheduledAppointments);
 
             model.addAttribute("doctor", doctor);
             model.addAttribute("pendingAppointments", pendingAppointments);
@@ -57,12 +63,35 @@ public class AppointmentController {
             Patient patient = patientService.getPatientByUsername(username);
             List<Appointment> pendingAppointments = appointmentService.getPendingAppointmentsByPatient(patient);
             List<Appointment> confirmedAppointments = appointmentService.getConfirmedAppointmentsByPatient(patient);
+            // Also fetch rescheduled appointments
+            List<Appointment> rescheduledAppointments = appointmentService.getRescheduledAppointmentsByPatient(patient);
+
+            // Add rescheduled appointments to pending for display
+            pendingAppointments.addAll(rescheduledAppointments);
 
             model.addAttribute("patient", patient);
             model.addAttribute("pendingAppointments", pendingAppointments);
             model.addAttribute("confirmedAppointments", confirmedAppointments);
             return "patient-appointments";
         }
+    }
+    private AppointmentDTO convertToDTO(Appointment appointment) {
+        AppointmentDTO dto = new AppointmentDTO();
+        dto.setId(appointment.getId());
+        dto.setPatientId(appointment.getPatient().getId());
+        dto.setPatientName(appointment.getPatient().getFullName());
+        dto.setDoctorId(appointment.getDoctor().getId());
+        dto.setDoctorName(appointment.getDoctor().getFullName());
+
+        // Format date and time using the static formatter method in AppointmentDTO
+        dto.setAppointmentDate(AppointmentDTO.formatDateTime(appointment.getAppointmentDateTime(), "yyyy-MM-dd"));
+        dto.setAppointmentTime(AppointmentDTO.formatDateTime(appointment.getAppointmentDateTime(), "HH:mm"));
+
+        dto.setNotes(appointment.getNotes());
+        dto.setStatus(appointment.getStatus().toString());
+        dto.setCreatedAt(AppointmentDTO.formatDateTime(appointment.getCreatedAt(), "yyyy-MM-dd HH:mm"));
+
+        return dto;
     }
 
     // Patient creates a new appointment request
@@ -270,4 +299,52 @@ public class AppointmentController {
 
         return slots;
     }
+    @GetMapping("/doctor/day")
+    public ResponseEntity<Map<String, Object>> getDoctorAppointmentsForDay(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Doctor doctor = doctorService.getDoctorByUsername(userDetails.getUsername());
+            List<Appointment> appointments = appointmentService.getDoctorAppointmentsForDate(doctor, date);
+
+            // Convert appointments to DTOs for proper JSON serialization
+            List<AppointmentDTO> appointmentDTOs = appointments.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+
+            response.put("success", true);
+            response.put("appointments", appointmentDTOs);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to get appointments: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    @GetMapping("/patient/day")
+    public ResponseEntity<Map<String, Object>> getPatientAppointmentsForDay(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Patient patient = patientService.getPatientByUsername(userDetails.getUsername());
+            List<Appointment> appointments = appointmentService.getPatientAppointmentsForDate(patient, date);
+
+            List<AppointmentDTO> appointmentDTOs = appointments.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+
+            response.put("success", true);
+            response.put("appointments", appointmentDTOs);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to get appointments: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
 }

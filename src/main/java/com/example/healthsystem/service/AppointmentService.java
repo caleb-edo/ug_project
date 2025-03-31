@@ -56,6 +56,17 @@ public class AppointmentService {
     public List<Appointment> getConfirmedAppointmentsByPatient(Patient patient) {
         return appointmentRepository.findByPatientAndStatus(patient, Appointment.AppointmentStatus.CONFIRMED);
     }
+    public List<Appointment> getAppointmentsByStatus(Appointment.AppointmentStatus status) {
+        return appointmentRepository.findByStatus(status);
+    }
+
+    public List<Appointment> getRescheduledAppointmentsByDoctor(Doctor doctor) {
+        return appointmentRepository.findByDoctorAndStatus(doctor, Appointment.AppointmentStatus.RESCHEDULED);
+    }
+
+    public List<Appointment> getRescheduledAppointmentsByPatient(Patient patient) {
+        return appointmentRepository.findByPatientAndStatus(patient, Appointment.AppointmentStatus.RESCHEDULED);
+    }
 
     public List<Appointment> getDoctorAppointmentsForDate(Doctor doctor, LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
@@ -83,7 +94,7 @@ public class AppointmentService {
         if (appointmentOpt.isPresent()) {
             Appointment appointment = appointmentOpt.get();
             appointment.setAppointmentDateTime(newDateTime);
-            appointment.setStatus(Appointment.AppointmentStatus.RESCHEDULED);
+            appointment.setStatus(Appointment.AppointmentStatus.REQUESTED);
             appointmentRepository.save(appointment);
         }
     }
