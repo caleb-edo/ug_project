@@ -91,6 +91,11 @@ public class AppointmentController {
         dto.setStatus(appointment.getStatus().toString());
         dto.setCreatedAt(AppointmentDTO.formatDateTime(appointment.getCreatedAt(), "yyyy-MM-dd HH:mm"));
 
+        // Add updated timestamp as well
+        if (appointment.getUpdatedAt() != null) {
+            dto.setUpdatedAt(AppointmentDTO.formatDateTime(appointment.getUpdatedAt(), "yyyy-MM-dd HH:mm"));
+        }
+
         return dto;
     }
 
@@ -343,6 +348,83 @@ public class AppointmentController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Failed to get appointments: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    // Method for complete appointments
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Map<String, Object>> completeAppointment(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id,
+            @RequestParam(required = false) String notes) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Doctor doctor = doctorService.getDoctorByUsername(userDetails.getUsername());
+            Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
+
+            if (!appointmentOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "Appointment not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Appointment appointment = appointmentOpt.get();
+            if (!appointment.getDoctor().getId().equals(doctor.getId())) {
+                response.put("success", false);
+                response.put("message", "You can only complete your own appointments");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Update notes if provided
+            if (notes != null && !notes.isEmpty()) {
+                appointment.setNotes(notes);
+                appointmentService.updateAppointment(appointment);
+            }
+
+            appointmentService.markAppointmentAsCompleted(id);
+
+            response.put("success", true);
+            response.put("message", "Appointment marked as completed successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to complete appointment: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/completed")
+    public ResponseEntity<Map<String, Object>> getCompletedAppointments(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String role = userDetails.getAuthorities().iterator().next().getAuthority();
+            List<Appointment> completedAppointments;
+
+            if (role.equals("ROLE_DOCTOR")) {
+                Doctor doctor = doctorService.getDoctorByUsername(userDetails.getUsername());
+                completedAppointments = appointmentService.getAppointmentsByDoctorAndStatus(
+                        doctor, Appointment.AppointmentStatus.COMPLETED);
+            } else {
+                Patient patient = patientService.getPatientByUsername(userDetails.getUsername());
+                completedAppointments = appointmentService.getAppointmentsByPatientAndStatus(
+                        patient, Appointment.AppointmentStatus.COMPLETED);
+            }
+
+            // Convert to DTOs for JSON serialization
+            List<AppointmentDTO> appointmentDTOs = completedAppointments.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+
+            response.put("success", true);
+            response.put("appointments", appointmentDTOs);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to get completed appointments: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

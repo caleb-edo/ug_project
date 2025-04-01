@@ -67,6 +67,13 @@ public class AppointmentService {
     public List<Appointment> getRescheduledAppointmentsByPatient(Patient patient) {
         return appointmentRepository.findByPatientAndStatus(patient, Appointment.AppointmentStatus.RESCHEDULED);
     }
+    public List<Appointment> getAppointmentsByDoctorAndStatus(Doctor doctor, Appointment.AppointmentStatus status) {
+        return appointmentRepository.findByDoctorAndStatus(doctor, status);
+    }
+
+    public List<Appointment> getAppointmentsByPatientAndStatus(Patient patient, Appointment.AppointmentStatus status) {
+        return appointmentRepository.findByPatientAndStatus(patient, status);
+    }
 
     public List<Appointment> getDoctorAppointmentsForDate(Doctor doctor, LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();

@@ -74,6 +74,16 @@
             </form>
         </div>
     </div>
+    <div id="notificationContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050; display: none;">
+        <div id="notification" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div id="notificationBody" class="toast-body">
+                    Notification message here.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-md-4">
@@ -303,8 +313,41 @@
 
 <!-- JavaScript for appointment functionality -->
 <script>
-    // JavaScript for appointment functionality
     document.addEventListener('DOMContentLoaded', function() {
+        // Custom notification function to replace alerts
+        function showNotification(message, type = 'success') {
+            const notificationContainer = document.getElementById('notificationContainer');
+            const notification = document.getElementById('notification');
+            const notificationBody = document.getElementById('notificationBody');
+
+            // Set notification text
+            notificationBody.textContent = message;
+
+            // Set notification color based on type
+            notification.className = 'toast align-items-center text-white border-0';
+            if (type === 'success') {
+                notification.classList.add('bg-success');
+            } else if (type === 'error') {
+                notification.classList.add('bg-danger');
+            } else if (type === 'warning') {
+                notification.classList.add('bg-warning');
+            } else if (type === 'info') {
+                notification.classList.add('bg-info');
+            }
+
+            // Make container visible
+            notificationContainer.style.display = 'block';
+
+            // Show notification
+            const bsToast = new bootstrap.Toast(notification, { delay: 5000 });
+            bsToast.show();
+
+            // Add event listener to hide container after toast is hidden
+            notification.addEventListener('hidden.bs.toast', function () {
+                notificationContainer.style.display = 'none';
+            });
+        }
+
         // Initialize buttons for appointment actions
         function initializeAppointmentButtons() {
             // Setup confirmation button click handlers
@@ -361,17 +404,19 @@
                         const confirmModal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
                         confirmModal.hide();
 
-                        alert('Appointment confirmed successfully');
+                        // Show notification instead of alert
+                        showNotification('Appointment confirmed successfully', 'success');
 
-                        // Refresh page
-                        window.location.reload();
+                        // Refresh page after delay
+                        setTimeout(() => window.location.reload(), 1500);
                     } else {
-                        alert('Failed to confirm appointment: ' + data.message);
+                        // Show error notification
+                        showNotification('Failed to confirm appointment: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error confirming appointment:', error);
-                    alert('An error occurred while confirming the appointment. Please try again later.');
+                    showNotification('An error occurred while confirming the appointment. Please try again later.', 'error');
                 });
         });
 
@@ -396,21 +441,22 @@
                         const cancelModal = bootstrap.Modal.getInstance(document.getElementById('cancelModal'));
                         cancelModal.hide();
 
-                        alert('Appointment cancelled successfully');
+                        // Show notification
+                        showNotification('Appointment cancelled successfully', 'success');
 
-                        // Refresh page
-                        window.location.reload();
+                        // Refresh page after delay
+                        setTimeout(() => window.location.reload(), 1500);
                     } else {
-                        alert('Failed to cancel appointment: ' + data.message);
+                        showNotification('Failed to cancel appointment: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error cancelling appointment:', error);
-                    alert('An error occurred while cancelling the appointment. Please try again later.');
+                    showNotification('An error occurred while cancelling the appointment. Please try again later.', 'error');
                 });
         });
 
-        // Handle complete appointment - MOVED INSIDE DOMContentLoaded
+        // Handle complete appointment
         document.getElementById('confirmCompleteBtn').addEventListener('click', function() {
             const appointmentId = document.getElementById('completeAppointmentId').value;
             const notes = document.getElementById('appointmentNotes').value;
@@ -431,17 +477,18 @@
                         const completeModal = bootstrap.Modal.getInstance(document.getElementById('completeModal'));
                         completeModal.hide();
 
-                        alert('Appointment marked as completed');
+                        // Show notification
+                        showNotification('Appointment marked as completed', 'success');
 
-                        // Refresh page
-                        window.location.reload();
+                        // Refresh page after delay
+                        setTimeout(() => window.location.reload(), 1500);
                     } else {
-                        alert('Failed to complete appointment: ' + data.message);
+                        showNotification('Failed to complete appointment: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error completing appointment:', error);
-                    alert('An error occurred while completing the appointment. Please try again later.');
+                    showNotification('An error occurred while completing the appointment. Please try again later.', 'error');
                 });
         });
 
@@ -563,19 +610,19 @@
 
                                 appointmentCard.innerHTML = `
 <div class="card-body">
-    <div class="d-flex justify-content-between align-items-start">
-        <div>
-            <h5 class="card-title">${appointment.patientName}</h5>
-            <p class="mb-1"><strong>Time:</strong> ${appointment.appointmentTime}</p>
-            ${appointment.notes ? `<p class="mb-1"><strong>Reason:</strong> ${appointment.notes}</p>` : ''}
-            <span class="badge ${getStatusBadgeClass(appointment.status)}">${appointment.status}</span>
-        </div>
-        <div>
-            <div class="btn-group btn-group-sm">
-                ${getActionButtons(appointment)}
-            </div>
+<div class="d-flex justify-content-between align-items-start">
+    <div>
+        <h5 class="card-title">${appointment.patientName}</h5>
+        <p class="mb-1"><strong>Time:</strong> ${appointment.appointmentTime}</p>
+        ${appointment.notes ? `<p class="mb-1"><strong>Reason:</strong> ${appointment.notes}</p>` : ''}
+        <span class="badge ${getStatusBadgeClass(appointment.status)}">${appointment.status}</span>
+    </div>
+    <div>
+        <div class="btn-group btn-group-sm">
+            ${getActionButtons(appointment)}
         </div>
     </div>
+</div>
 </div>
 `;
 
@@ -665,13 +712,13 @@
 
                                 appointmentItem.innerHTML = `
 <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h6 class="mb-0">${appointment.patientName}</h6>
-            <small class="text-muted">${appointment.appointmentTime}</small>
-        </div>
-        <span class="badge ${getStatusBadgeClass(appointment.status)}">${appointment.status}</span>
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        <h6 class="mb-0">${appointment.patientName}</h6>
+        <small class="text-muted">${appointment.appointmentTime}</small>
     </div>
+    <span class="badge ${getStatusBadgeClass(appointment.status)}">${appointment.status}</span>
+</div>
 </div>
 `;
 
@@ -684,9 +731,9 @@
                     })
                     .catch(error => {
                         console.error('Error fetching today\'s schedule:', error);
+                        showNotification('Error loading today\'s schedule', 'error');
                     });
             }
-
 
             // Initialize calendar
             updateCalendar();
@@ -716,6 +763,55 @@
 
         // Initialize calendar if it exists
         generateCalendar();
+
+        // Add function to load completed appointments
+        function loadCompletedAppointments() {
+            const completedTabPane = document.getElementById('completed');
+            if (!completedTabPane) return;
+
+            const appointmentList = completedTabPane.querySelector('.appointment-list');
+            appointmentList.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+            fetch('/appointments/completed')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.appointments && data.appointments.length > 0) {
+                        // Create appointment items
+                        appointmentList.innerHTML = '';
+                        data.appointments.forEach(appointment => {
+                            const appointmentCard = document.createElement('div');
+                            appointmentCard.className = 'card appointment-card p-3 mb-3';
+
+                            appointmentCard.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="mb-1">${appointment.patientName}</h5>
+                                    <p class="mb-1">
+                                        <strong>When:</strong>
+                                        ${appointment.appointmentDate} at
+                                        ${appointment.appointmentTime}
+                                    </p>
+                                    ${appointment.notes ? `<p class="mb-1"><strong>Notes:</strong> ${appointment.notes}</p>` : ''}
+                                    <span class="badge bg-info">Completed</span>
+                                </div>
+                            </div>
+                        `;
+
+                            appointmentList.appendChild(appointmentCard);
+                        });
+                    } else {
+                        // No completed appointments
+                        appointmentList.innerHTML = '<div class="alert alert-info">No completed appointments found.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading completed appointments:', error);
+                    appointmentList.innerHTML = '<div class="alert alert-danger">Error loading completed appointments. Please try again.</div>';
+                });
+        }
+
+        // Initialize the completed tab click listener
+        document.getElementById('completed-tab').addEventListener('click', loadCompletedAppointments);
     });
 </script>
 </body>

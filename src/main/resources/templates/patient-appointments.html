@@ -65,6 +65,16 @@
             </form>
         </div>
     </div>
+    <div id="notificationContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050; display: none;">
+        <div id="notification" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div id="notificationBody" class="toast-body">
+                    Notification message here.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-md-4">
@@ -266,16 +276,51 @@
 <!-- JavaScript for appointment functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Custom notification function to replace alerts
+        function showNotification(message, type = 'success') {
+            const notificationContainer = document.getElementById('notificationContainer');
+            const notification = document.getElementById('notification');
+            const notificationBody = document.getElementById('notificationBody');
+
+            // Set notification text
+            notificationBody.textContent = message;
+
+            // Set notification color based on type
+            notification.className = 'toast align-items-center text-white border-0';
+            if (type === 'success') {
+                notification.classList.add('bg-success');
+            } else if (type === 'error') {
+                notification.classList.add('bg-danger');
+            } else if (type === 'warning') {
+                notification.classList.add('bg-warning');
+                notification.classList.add('text-dark');
+            } else if (type === 'info') {
+                notification.classList.add('bg-info');
+            }
+
+            // Make container visible
+            notificationContainer.style.display = 'block';
+
+            // Show notification
+            const bsToast = new bootstrap.Toast(notification, { delay: 5000 });
+            bsToast.show();
+
+            // Add event listener to hide container after toast is hidden
+            notification.addEventListener('hidden.bs.toast', function () {
+                notificationContainer.style.display = 'none';
+            });
+        }
+
         // Get doctor ID
         const doctorId = document.getElementById('doctor-id').value;
 
-// Initialize date picker min date to today
+        // Initialize date picker min date to today
         const today = new Date();
         const appointmentDateInput = document.getElementById('appointmentDate');
         if (appointmentDateInput) {
             appointmentDateInput.min = today.toISOString().split('T')[0];
 
-// Event listener for date change to fetch available time slots
+            // Event listener for date change to fetch available time slots
             appointmentDateInput.addEventListener('change', function() {
                 const selectedDate = this.value;
                 if (selectedDate && doctorId) {
@@ -284,12 +329,12 @@
             });
         }
 
-// Initialize reschedule date picker
+        // Initialize reschedule date picker
         const rescheduleDateInput = document.getElementById('rescheduleDate');
         if (rescheduleDateInput) {
             rescheduleDateInput.min = today.toISOString().split('T')[0];
 
-// Event listener for date change
+            // Event listener for date change
             rescheduleDateInput.addEventListener('change', function() {
                 const selectedDate = this.value;
                 if (selectedDate && doctorId) {
@@ -298,17 +343,17 @@
             });
         }
 
-// Functions to fetch available time slots
+        // Functions to fetch available time slots
         function fetchAvailableTimeSlots(doctorId, date, selectElementId) {
             const timeSelect = document.getElementById(selectElementId);
             timeSelect.disabled = true;
 
-// Clear previous options
+            // Clear previous options
             while (timeSelect.options.length > 1) {
                 timeSelect.remove(1);
             }
 
-// Add loading option
+            // Add loading option
             const loadingOption = document.createElement('option');
             loadingOption.text = 'Loading available times...';
             loadingOption.disabled = true;
@@ -318,11 +363,11 @@
             fetch(`/appointments/available-slots?doctorId=${doctorId}&date=${date}`)
                 .then(response => response.json())
                 .then(data => {
-// Remove loading option
+                    // Remove loading option
                     timeSelect.remove(timeSelect.options.length - 1);
 
                     if (data.success && data.availableSlots && data.availableSlots.length > 0) {
-// Add available slots
+                        // Add available slots
                         data.availableSlots.forEach(timeSlot => {
                             const option = document.createElement('option');
                             option.value = timeSlot;
@@ -332,7 +377,7 @@
 
                         timeSelect.disabled = false;
 
-// Add default option
+                        // Add default option
                         const defaultOption = document.createElement('option');
                         defaultOption.value = '';
                         defaultOption.text = 'Select a time';
@@ -340,7 +385,7 @@
                         defaultOption.selected = true;
                         timeSelect.insertBefore(defaultOption, timeSelect.firstChild);
                     } else {
-// No available slots
+                        // No available slots
                         const noSlotsOption = document.createElement('option');
                         noSlotsOption.value = '';
                         noSlotsOption.text = 'No available slots for this date';
@@ -352,12 +397,13 @@
                 .catch(error => {
                     console.error('Error fetching available time slots:', error);
 
-// Show error message
+                    // Show error message
                     timeSelect.innerHTML = '<option value="" disabled selected>Error loading time slots</option>';
+                    showNotification('Error loading available time slots. Please try again.', 'error');
                 });
         }
 
-// Format time for display (e.g., "14:30" to "2:30 PM")
+        // Format time for display (e.g., "14:30" to "2:30 PM")
         function formatTime(timeString) {
             const [hours, minutes] = timeString.split(':');
             let hour = parseInt(hours);
@@ -367,7 +413,7 @@
             return `${hour}:${minutes} ${ampm}`;
         }
 
-// Handle appointment form submission
+        // Handle appointment form submission
         const appointmentForm = document.getElementById('appointmentForm');
         if (appointmentForm) {
             appointmentForm.addEventListener('submit', function(event) {
@@ -378,11 +424,11 @@
                 const appointmentNotes = document.getElementById('appointmentNotes').value;
 
                 if (!appointmentDate || !appointmentTime) {
-                    alert('Please select both date and time for your appointment');
+                    showNotification('Please select both date and time for your appointment', 'warning');
                     return;
                 }
 
-// Submit the appointment request
+                // Submit the appointment request
                 fetch('/appointments/request', {
                     method: 'POST',
                     headers: {
@@ -398,29 +444,29 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Appointment request submitted successfully! Your doctor will review and confirm your appointment.');
-// Reset form
+                            showNotification('Appointment request submitted successfully! Your doctor will review and confirm your appointment.', 'success');
+                            // Reset form
                             appointmentForm.reset();
-// Refresh page or update UI
-                            window.location.reload();
+                            // Refresh page after delay
+                            setTimeout(() => window.location.reload(), 1500);
                         } else {
-                            alert('Failed to request appointment: ' + data.message);
+                            showNotification('Failed to request appointment: ' + data.message, 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Error submitting appointment request:', error);
-                        alert('An error occurred while submitting your appointment request. Please try again later.');
+                        showNotification('An error occurred while submitting your appointment request. Please try again later.', 'error');
                     });
             });
         }
 
-// Setup cancel and reschedule buttons
+        // Setup cancel and reschedule buttons
         document.querySelectorAll('.cancel-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const appointmentId = this.getAttribute('data-id');
                 document.getElementById('cancelAppointmentId').value = appointmentId;
 
-// Show modal
+                // Show modal
                 const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
                 cancelModal.show();
             });
@@ -435,18 +481,18 @@
                 document.getElementById('rescheduleAppointmentId').value = appointmentId;
                 document.getElementById('rescheduleDate').value = currentDate;
 
-// Show modal
+                // Show modal
                 const rescheduleModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
                 rescheduleModal.show();
 
-// Fetch available times for the current date
+                // Fetch available times for the current date
                 if (currentDate && doctorId) {
                     fetchAvailableTimeSlots(doctorId, currentDate, 'rescheduleTime');
                 }
             });
         });
 
-// Handle cancel confirmation
+        // Handle cancel confirmation
         document.getElementById('confirmCancel').addEventListener('click', function() {
             const appointmentId = document.getElementById('cancelAppointmentId').value;
             const reason = document.getElementById('cancelReason').value;
@@ -463,32 +509,32 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-// Hide modal
+                        // Hide modal
                         const cancelModal = bootstrap.Modal.getInstance(document.getElementById('cancelModal'));
                         cancelModal.hide();
 
-                        alert('Appointment cancelled successfully');
+                        showNotification('Appointment cancelled successfully', 'success');
 
-// Refresh page
-                        window.location.reload();
+                        // Refresh page after delay
+                        setTimeout(() => window.location.reload(), 1500);
                     } else {
-                        alert('Failed to cancel appointment: ' + data.message);
+                        showNotification('Failed to cancel appointment: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error cancelling appointment:', error);
-                    alert('An error occurred while cancelling your appointment. Please try again later.');
+                    showNotification('An error occurred while cancelling your appointment. Please try again later.', 'error');
                 });
         });
 
-// Handle reschedule confirmation
+        // Handle reschedule confirmation
         document.getElementById('confirmReschedule').addEventListener('click', function() {
             const appointmentId = document.getElementById('rescheduleAppointmentId').value;
             const newDate = document.getElementById('rescheduleDate').value;
             const newTime = document.getElementById('rescheduleTime').value;
 
             if (!newDate || !newTime) {
-                alert('Please select both date and time for rescheduling');
+                showNotification('Please select both date and time for rescheduling', 'warning');
                 return;
             }
 
@@ -505,23 +551,72 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-// Hide modal
+                        // Hide modal
                         const rescheduleModal = bootstrap.Modal.getInstance(document.getElementById('rescheduleModal'));
                         rescheduleModal.hide();
 
-                        alert('Appointment rescheduled successfully');
+                        showNotification('Appointment rescheduled successfully', 'success');
 
-// Refresh page
-                        window.location.reload();
+                        // Refresh page after delay
+                        setTimeout(() => window.location.reload(), 1500);
                     } else {
-                        alert('Failed to reschedule appointment: ' + data.message);
+                        showNotification('Failed to reschedule appointment: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error rescheduling appointment:', error);
-                    alert('An error occurred while rescheduling your appointment. Please try again later.');
+                    showNotification('An error occurred while rescheduling your appointment. Please try again later.', 'error');
                 });
         });
+
+        // Function to load past appointments
+        function loadPastAppointments() {
+            const pastTabPane = document.getElementById('past');
+            if (!pastTabPane) return;
+
+            const appointmentList = pastTabPane.querySelector('.appointment-list');
+            appointmentList.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+            fetch('/appointments/completed')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.appointments && data.appointments.length > 0) {
+                        // Create appointment items
+                        appointmentList.innerHTML = '';
+                        data.appointments.forEach(appointment => {
+                            const appointmentCard = document.createElement('div');
+                            appointmentCard.className = 'card appointment-card mb-3';
+
+                            appointmentCard.innerHTML = `
+                            <div class="card-body">
+                                <h5 class="card-title">Appointment with Dr. ${appointment.doctorName}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">
+                                    ${appointment.appointmentDate} at
+                                    ${appointment.appointmentTime}
+                                </h6>
+                                ${appointment.notes ? `<p class="card-text">${appointment.notes}</p>` : ''}
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-info">Completed</span>
+                                    <small class="text-muted">Completed on ${appointment.updatedAt || appointment.createdAt}</small>
+                                </div>
+                            </div>
+                        `;
+
+                            appointmentList.appendChild(appointmentCard);
+                        });
+                    } else {
+                        // No past appointments
+                        appointmentList.innerHTML = '<div class="alert alert-info">No past appointments found.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading past appointments:', error);
+                    appointmentList.innerHTML = '<div class="alert alert-danger">Error loading past appointments. Please try again.</div>';
+                });
+        }
+
+        // Initialize the past tab click listener
+        document.getElementById('past-tab').addEventListener('click', loadPastAppointments);
     });
 </script>
 </body>
