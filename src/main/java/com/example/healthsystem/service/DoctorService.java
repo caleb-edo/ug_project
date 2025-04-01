@@ -1,5 +1,6 @@
 package com.example.healthsystem.service;
 
+import com.example.healthsystem.model.Appointment;
 import com.example.healthsystem.model.Doctor;
 import com.example.healthsystem.model.Patient;
 import com.example.healthsystem.dto.PatientStatistics;
@@ -23,6 +24,9 @@ public class DoctorService {
     @Autowired
     private PatientRepository patientRepository;
 
+    @Autowired
+    private AppointmentService appointmentService;
+
     public Doctor getDoctorByUsername(String username) {
         return doctorRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with username: " + username));
@@ -41,8 +45,8 @@ public class DoctorService {
         List<Patient> patients = doctor.getPatients();
 
         stats.setTotalPatients(patients.size());
-        stats.setRequireAttention(calculatePatientsNeedingAttention(patients));
-        stats.setPendingAppointments(calculatePendingAppointments(patients));
+        stats.setRequireAttention(calculatePatientsNeedingAttention(doctor));
+        stats.setPendingAppointments(calculatePendingAppointments(doctor));
 
         return stats;
     }
@@ -54,23 +58,20 @@ public class DoctorService {
         return generatePatientUpdates(doctor.getPatients());
     }
 
-    private int calculatePatientsNeedingAttention(List<Patient> patients) {
-        return (int) patients.stream()
-                .filter(patient -> {
-                    boolean hasCurrentMedications = patient.getCurrentMedications() != null &&
-                            !patient.getCurrentMedications().isEmpty();
-                    boolean hasRecentHistory = patient.getMedicalHistory() != null &&
-                            !patient.getMedicalHistory().isEmpty();
-                    boolean hasAllergies = patient.getAllergies() != null &&
-                            !patient.getAllergies().isEmpty();
+    private int calculatePatientsNeedingAttention(Doctor doctor) {
+        // Get all patients with pending appointments for this doctor
+        List<Appointment> pendingAppointments = appointmentService.getPendingAppointmentsByDoctor(doctor);
 
-                    return hasCurrentMedications || hasRecentHistory || hasAllergies;
-                })
+        // Count unique patients with pending appointments
+        return (int) pendingAppointments.stream()
+                .map(appointment -> appointment.getPatient().getId())
+                .distinct()
                 .count();
     }
 
-    private int calculatePendingAppointments(List<Patient> patients) {
-        return (int) Math.ceil(patients.size() * 0.2);
+    private int calculatePendingAppointments(Doctor doctor) {
+        // Count the number of pending appointments
+        return appointmentService.getPendingAppointmentsByDoctor(doctor).size();
     }
 
     private List<PatientUpdate> generatePatientUpdates(List<Patient> patients) {

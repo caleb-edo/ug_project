@@ -53,6 +53,21 @@
         .metric-card h3 {
             color: #198754;
         }
+        .metric-card .card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #198754;
+        }
+
+        .metric-card .card:hover {
+            background-color: #f8f9fa;
+        }
+
+        .metric-card h4 {
+            color: #198754;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
         .patient-list {
             max-height: 600px;
             overflow-y: auto;
@@ -177,20 +192,26 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="card text-center p-3">
+                            <div class="feature-icon">👥</div>
                             <h4 th:text="${patients.size()}">0</h4>
                             <p>Total Patients</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card text-center p-3">
+                            <div class="feature-icon">⚠️</div>
                             <h4 th:text="${patientStats.requireAttention}">0</h4>
                             <p>Need Attention</p>
+                            <a th:if="${patientStats.requireAttention > 0}" href="#patients-section" class="btn btn-sm btn-warning">View Patients</a>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card text-center p-3">
-                            <h4 th:text="${patientStats.pendingAppointments}">0</h4>
+                            <div class="feature-icon">📅</div>
+                            <!-- Directly accessing appointment data from controller -->
+                            <h4 th:text="${pendingAppointments != null ? pendingAppointments.size() : 0}">0</h4>
                             <p>Pending Appointments</p>
+                            <a th:if="${pendingAppointments != null && !pendingAppointments.isEmpty()}" href="/appointments" class="btn btn-sm btn-primary">Manage Appointments</a>
                         </div>
                     </div>
                 </div>
@@ -199,7 +220,6 @@
     </div>
 
     <div class="row mb-4" id="patient-section">
-        <!-- Put Recent Updates section back on the left -->
         <div class="col-md-8">
             <!-- Recent Updates Section -->
             <div class="metric-card h-100">

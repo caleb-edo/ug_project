@@ -1,12 +1,10 @@
 package com.example.healthsystem.controllers;
 
+import com.example.healthsystem.model.Appointment;
 import com.example.healthsystem.model.Doctor;
 import com.example.healthsystem.model.Message;
 import com.example.healthsystem.model.Patient;
-import com.example.healthsystem.service.DoctorService;
-import com.example.healthsystem.service.MessageService;
-import com.example.healthsystem.service.PatientService;
-import com.example.healthsystem.service.PatientUpdateService;
+import com.example.healthsystem.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,6 +30,9 @@ public class DoctorController {
     @Autowired
     private PatientUpdateService patientUpdateService;
 
+    @Autowired
+    private AppointmentService appointmentService;
+
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         try {
@@ -41,6 +42,8 @@ public class DoctorController {
             // Get assigned and unassigned patients
             List<Patient> unassignedPatients = patientService.getUnassignedPatients();
             List<Message> messages = messageService.getMessagesByReceiver(doctor);
+            List<Appointment> pendingAppointments = appointmentService.getPendingAppointmentsByDoctor(doctor);
+
 
             model.addAttribute("doctor", doctor);
             model.addAttribute("patients", doctor.getPatients());
@@ -48,6 +51,7 @@ public class DoctorController {
             model.addAttribute("patientStats", doctorService.getPatientStatistics(doctor.getId()));
             model.addAttribute("recentUpdates", patientUpdateService.getRecentUpdatesForDoctor(doctor));
             model.addAttribute("messages", messages);
+            model.addAttribute("pendingAppointments", pendingAppointments);
 
             return "doctor-dashboard";
         } catch (Exception e) {
