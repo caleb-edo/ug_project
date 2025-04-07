@@ -161,7 +161,7 @@
         <p class="subtitle">Your Health, Our Priority</p>
     </div>
 
-    <h1>Welcome Back</h1>
+    <h1>Welcome!</h1>
 
     <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">
     </div>
@@ -197,6 +197,7 @@
 </div>
 
 <script>
+    // Validation methods for username and password fields
     document.addEventListener("DOMContentLoaded", function () {
         const loginForm = document.getElementById("login-form");
 
