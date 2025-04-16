@@ -11,11 +11,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- BotUI for Chatbot -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui-theme-default.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.min.js"></script>
     <style>
         body {
             background: linear-gradient(315deg, #6a11cb, #ffffff);
@@ -278,9 +273,14 @@
                 <div class="col-12">
                     <div class="metric-card">
                         <h3>Health Assistant</h3>
-                        <div id="botui">
-                            <!--suppress HtmlUnknownTag -->
-                            <bot-ui></bot-ui>
+                        <div id="health-assistant" class="p-2">
+                            <div id="chat-messages" class="mb-3" style="height: 250px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background-color: #f8f9fa;"></div>
+                            <div class="input-group">
+                                <input type="text" id="user-input" class="form-control" placeholder="Ask about health concerns or tips...">
+                                <button id="send-btn" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -743,14 +743,109 @@
         }
     });
 
-    // Chatbot
-    const botui = new BotUI('botui');
-    botui.message.add({ content: 'Hello! How can I help you today?' }).then(() => {
-        return botui.action.text({
-            action: { placeholder: 'Type your question here...' }
+    // Simple Health Assistant
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // Display a welcome message when the assistant loads
+        addBotMessage("Hello! I'm your health assistant. How can I help you today? You can ask about diet tips, medication info, or general health questions.");
+
+        // Handle sending messages
+        function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return;
+
+            // Display user message
+            addUserMessage(userMessage);
+            userInput.value = '';
+
+            // Process the user's message after a short delay
+            setTimeout(() => {
+                const response = generateResponse(userMessage);
+                addBotMessage(response);
+
+                // Scroll to the bottom of the chat
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 600);
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
-    }).then(res => {
-        botui.message.add({ content: `You asked: ${res.value}` });
+
+        // Add a bot message to the chat
+        function addBotMessage(message) {
+            const msgElement = document.createElement('div');
+            msgElement.className = 'p-2 mb-2 bg-light rounded-pill';
+            msgElement.style.maxWidth = '80%';
+            msgElement.style.marginRight = 'auto';
+            msgElement.innerHTML = `<i class="fas fa-robot text-primary me-2"></i>${message}`;
+            chatMessages.appendChild(msgElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add a user message to the chat
+        function addUserMessage(message) {
+            const msgElement = document.createElement('div');
+            msgElement.className = 'p-2 mb-2 bg-primary text-white rounded-pill';
+            msgElement.style.maxWidth = '80%';
+            msgElement.style.marginLeft = 'auto';
+            msgElement.innerHTML = `${message} <i class="fas fa-user ms-2"></i>`;
+            chatMessages.appendChild(msgElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Generate a response based on the user's message
+        function generateResponse(message) {
+            const lowerMsg = message.toLowerCase();
+
+            // Diet and nutrition responses
+            if (lowerMsg.includes('diet') || lowerMsg.includes('food') || lowerMsg.includes('eat')) {
+                return "Maintaining a balanced diet is important for managing chronic conditions. Focus on whole foods, plenty of vegetables, lean proteins, and limit processed foods. Remember to stay hydrated by drinking water throughout the day.";
+            }
+
+            // Medication responses
+            else if (lowerMsg.includes('medication') || lowerMsg.includes('medicine') || lowerMsg.includes('pill')) {
+                return "It's important to take your medications as prescribed. If you're experiencing side effects or have concerns, please contact your doctor directly. You can view and manage your prescriptions in the Prescriptions section.";
+            }
+
+            // Exercise responses
+            else if (lowerMsg.includes('exercise') || lowerMsg.includes('workout') || lowerMsg.includes('activity')) {
+                return "Regular physical activity is beneficial for most chronic conditions. Start with gentle exercises like walking, swimming, or yoga. Always consult your doctor before starting a new exercise routine.";
+            }
+
+            // Sleep responses
+            else if (lowerMsg.includes('sleep') || lowerMsg.includes('tired') || lowerMsg.includes('insomnia')) {
+                return "Quality sleep is essential for managing chronic conditions. Aim for 7-9 hours per night, maintain a regular sleep schedule, and create a relaxing bedtime routine. Limit caffeine and screen time before bed.";
+            }
+
+            // Stress responses
+            else if (lowerMsg.includes('stress') || lowerMsg.includes('anxiety') || lowerMsg.includes('worried')) {
+                return "Stress management is important for your health. Try deep breathing exercises, meditation, or gentle physical activity. If stress is overwhelming, consider talking to your healthcare provider about additional resources.";
+            }
+
+            // Appointment responses
+            else if (lowerMsg.includes('appointment') || lowerMsg.includes('schedule') || lowerMsg.includes('visit')) {
+                return "You can schedule or manage appointments through the Appointments section. Regular check-ups are important for monitoring your health conditions.";
+            }
+
+            // General questions
+            else if (lowerMsg.includes('what') || lowerMsg.includes('how') || lowerMsg.includes('why') || lowerMsg.includes('?')) {
+                return "That's a good question. For specific medical advice, please consult your doctor. You can schedule an appointment or send a message to your healthcare provider through this portal.";
+            }
+
+            // Default response
+            else {
+                return "I'm here to provide general health information. If you have specific medical concerns, please contact your healthcare provider directly through the Messages section or schedule an appointment.";
+            }
+            // Health related responses have been AI-generated, as the health assistant is AI-based
+        }
     });
 
     // Prescription Guide Function
