@@ -77,6 +77,9 @@
                                         th:value="${patient.id}"
                                         th:text="${patient.fullName}">Patient Name</option>
                             </select>
+                            <small class="form-text text-muted" th:if="${patients.isEmpty()}">
+                                You don't have any assigned patients. Please assign patients from your dashboard first.
+                            </small>
                         </div>
 
                         <div class="mb-3">

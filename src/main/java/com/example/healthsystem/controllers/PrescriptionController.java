@@ -98,7 +98,8 @@ public class PrescriptionController {
     public String newPrescriptionForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         try {
             Doctor doctor = doctorService.getDoctorByUsername(userDetails.getUsername());
-            List<Patient> patients = patientService.getAllPatients();
+            // Only get patients assigned to this doctor instead of all patients
+            List<Patient> patients = doctor.getPatients();
             model.addAttribute("doctor", doctor);
             model.addAttribute("patients", patients);
             return "doctor-new-prescription";
