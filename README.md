@@ -1,4 +1,4 @@
-# ChronicCare: A web-based applcation for managing chronic patients' health
+# ChronicCare: A web-based application for managing chronic patients' health
 
 ## Information about this repository
 
