@@ -92,7 +92,7 @@ Any suitable IDE with Spring Boot capabilities (Intellij, Visual Studio Code, Ec
 ### Instructions
 
 1. Import the whole project into an IDE, and ensure the project has the same directory structure as this repository
-2. Ensure the **build.gradle** and **application.properties** files are the same
+2. Ensure the **build.gradle** and **application.properties** files are the same as the ones in this repository
 3. Connect the project to an SQL database with a running server
 4. Build and run the application
 
