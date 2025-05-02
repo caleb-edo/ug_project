@@ -4,7 +4,7 @@
 
 The repository should contain 52 unique files for a Spring Boot project and their directories:
 
-==Model==
+#### Model
 
 Appointment.java
 Doctor.java
@@ -13,7 +13,7 @@ Patient.java
 Prescription.java
 User.java
 
-==Controllers==
+#### Controllers
 
 AppointmentController.java
 AuthController.java
@@ -22,13 +22,13 @@ MessageController.java
 PatientController.java
 PrescriptionController.java
 
-==DTO==
+#### DTO
 
 AppointmentDTO.java
 PatientStatistics.java
 PatientUpdate.java
 
-==Repositories==
+#### Repositories
 
 AppointmentRepository.java
 DoctorRepository.java
@@ -37,12 +37,12 @@ PatientRepository.java
 PrescriptionRepository.java
 UserRepository.java
 
-==Security==
+#### Security
 
 CustomUserDetails.java
 CustomUserDetailsService.java
 
-==Service==
+#### Service
 
 AppointmentService.java
 DoctorService.java
@@ -52,36 +52,38 @@ PatientUpdateService.java
 PrescriptionService.java
 UserService.java
 
-==Config==
+#### Config
 
 SecurityConfig.java
 
-==Spring Boot Application Build==
+#### Spring Boot Application Build
 
 HealthSystemApplication.java
 
-==Tests==
+#### Tests
 
 HealthSystemApplicationTests.java
 HealthSystemControllerTests.java
 HealthSystemSecurityTests.java
 HealthSystemServiceTests.java
 
-==System Files==
+#### System Files
 
 build.gradle
 application.properties
 
-==Database schema (optional)==
+#### Database schema (optional)
 HealthSystem.sql
 
 Registering new accounts should work for normal access, but sample doctor and patient logins are as follows:
 
-==Doctor Login==
+#### Doctor Login
+
 Username: bensmith
 Password: bensmith123
 
-==Patient Login==
+#### Patient Login
+
 Username: frankfelix
 Password: frankfelix123
 
